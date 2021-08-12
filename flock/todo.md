@@ -19,7 +19,7 @@ Now that you've got birds flying, introduce the idea of them changing their moti
 
 ### Flocking
 Now the fun part...let's see if they can change behavior based on the other birds around them.
-1. read about the basic flocking algorithm: https://cs.stanford.edu/people/eroberts/courses/soco/projects/2008-09/modeling-natural-systems/boids.html
+1. read about the basic flocking algorithm: [here](Bounds.pdf) and see [sample code here](Boids%20Pseudocode.pdf)
 1. try implementing it.  Do it in stages...there are a few rules to the full algorithm...what part can you implement first?
 1. think about performance...what do you think is the most expensive part of this algorithm? Can you imagine ways you could make it less expensive?
 
