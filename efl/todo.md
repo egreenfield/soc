@@ -6,6 +6,10 @@
 - ability to change individual parameters at runtime.
 - fix transparency problem?
 - trails
+- fix the 'too close' logic so it's not so jarring
+- add some randomness to motion of flocks
+- add repulsor behavior to edge of screen
+- add quad tree / tile tree optimization
 
 
 ## Challenges

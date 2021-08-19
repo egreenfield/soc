@@ -7,23 +7,34 @@ import random
 import math
 from pygame import Surface
 
+#####-----------------------------------------------------------------------------------------------------------------------------
+#### Playback state
+#####-----------------------------------------------------------------------------------------------------------------------------
+
 CONTINUOUS = 0
 STOP = 1
 STEP = 2
 STARTING_RUNSTYLE = CONTINUOUS
 
+EDGE_WRAP = 0
+EDGE_RETURN = 1
+EDGE_BEHAVIOR = EDGE_WRAP
+
 WORLD_WIDTH     = 1800
 WORLD_HEIGHT    = 900
-BIRD_HEIGHT = 10
-BIRD_WIDTH = 3
+
+#####-----------------------------------------------------------------------------------------------------------------------------
+#### Simulation constants
+#####-----------------------------------------------------------------------------------------------------------------------------
+
 BIRD_MAX_SPEED = 350
 BIRD_MIN_SPEED = 100
 STARTING_BIRD_COUNT = 200
 BIRD_LENGTH = 10
 BIRD_VISIBILITY = 80
-BOX_MAGNETISM = 2000
+BOX_MAGNETISM = 100
 TOO_CLOSE = 20
-INDIVIDUALITY = 2
+INDIVIDUALITY = 5
 GRAVITATIONAL_STRENGTH = .05
 
 TOO_CLOSE2 = TOO_CLOSE*TOO_CLOSE
@@ -38,6 +49,10 @@ def wrap(v,w,h):
     elif v.y > h:
         v.y = v.y - h
     return v
+
+#####-----------------------------------------------------------------------------------------------------------------------------
+#### Bird
+#####-----------------------------------------------------------------------------------------------------------------------------
 
 class Bird:
     pos:Vector2
@@ -55,7 +70,8 @@ class Bird:
         velocity = Vector2(0,0)
 
         velocity += + self.currentFlight()
-#        velocity += self.stayInBox(self.flock.world.width,self.flock.world.height)
+        if(self.flock.world.edgeBehavior == EDGE_RETURN):
+            velocity += self.stayInBox(self.flock.world.width,self.flock.world.height)
 
         nearbyBirds = self.flock.findBirdsNearby(self.pos,BIRD_VISIBILITY)        
         self.gravity = None
@@ -69,7 +85,8 @@ class Bird:
 
         delta = velocity * timeDelta        
         self.newPos = self.pos + delta
-        self.newPos = wrap(self.newPos,self.flock.world.width,self.flock.world.height)
+        if(self.flock.world.edgeBehavior == EDGE_WRAP):
+            self.newPos = wrap(self.newPos,self.flock.world.width,self.flock.world.height)
 
     def currentFlight(self):
         return self.velocity
@@ -114,12 +131,14 @@ class Bird:
             self.velocity.scale_to_length(BIRD_MAX_SPEED)
         elif self.velocity.length_squared() < (BIRD_MIN_SPEED*BIRD_MIN_SPEED):
             self.velocity.scale_to_length(BIRD_MIN_SPEED)
-        
-
-
+    
     def updatePosition(self):
         self.pos = self.newPos
         self.newPos = None
+
+#####-----------------------------------------------------------------------------------------------------------------------------
+#### Flock
+#####-----------------------------------------------------------------------------------------------------------------------------
 
 class Flock:
     birds:list[Bird]
@@ -162,17 +181,9 @@ class Flock:
         return nearbyBirds
 
 
-
-#---------------------------------------------------------------------------
-#
-# Defining your data
-#
-#---------------------------------------------------------------------------
-
-# this is where we define all the 'state' in your world.  'State' is all the data
-# a computer needs to be able to function correctly.  In this case, it's all the data
-# you need to be able to draw and update the state of the game.
-@dataclass
+#####-----------------------------------------------------------------------------------------------------------------------------
+#### World
+#####-----------------------------------------------------------------------------------------------------------------------------
 class World:
     playerPosition = None
     flock:Flock
@@ -180,11 +191,13 @@ class World:
     height:int
     runStyle:int
     drawDiagnostics:bool = False
+    edgeBehavior:int = EDGE_BEHAVIOR
     def __init__(self,w:int,h:int):
         self.width = w
         self.height = h
         self.flock = Flock(self)
         self.runStyle = STARTING_RUNSTYLE
+
     def reset(self):
         self.flock.clear()
         for i in range(STARTING_BIRD_COUNT):
@@ -198,12 +211,9 @@ class World:
 
 
 
-# this is data that gets used to draw the game.  It's separate from the 'state' because 
-# it's not really about the mechanics of the game, but only just the data needed to show it on screen
-# for example, you might load up some images that you use to represent a player, a bad guy, etc.  
-# you don't want to have to load those every time you draw to the screen, so we can load it once, 
-# stick it here, and use it every time we draw.
-@dataclass
+#####-----------------------------------------------------------------------------------------------------------------------------
+#### Graphics
+#####-----------------------------------------------------------------------------------------------------------------------------
 class Graphics:
     world:World
 
@@ -231,11 +241,9 @@ class Graphics:
 
 
 
-#---------------------------------------------------------------------------
-#
-# Handling change
-#
-#---------------------------------------------------------------------------
+#####-----------------------------------------------------------------------------------------------------------------------------
+#### USer Input/Events
+#####-----------------------------------------------------------------------------------------------------------------------------
 def processEvents(world):
     # this is called "event driven programming."  When stuff
     # happens in the computer's environment, it puts an event in a list.
@@ -257,19 +265,10 @@ def processEvents(world):
                 world.addBirds(10)
             elif event.key == K_DOWN:
                 world.removeBirds(10)
+            elif event.key == K_e:
+                world.edgeBehavior = 1 - world.edgeBehavior
 
     return False
-
-def checkKeys(world):
-    # this is called polling.  Instead of getting a list of events,
-    # you can ask (i.e., 'poll') things in the computer to find out 
-    # what the state of things is, and react accordingly.
-    pressed_keys = pygame.key.get_pressed()
-    if pressed_keys[K_LEFT]:
-        world.textpos = world.textpos.move(-1,0)
-    if pressed_keys[K_RIGHT]:
-        world.textpos = world.textpos.move(1,0)
-
 
 def updateWorld(world,delta):
     # this is a good place to make updates to the game world that 
@@ -318,25 +317,19 @@ def runLoop(world,graphics,surface,screen):
         shouldQuit = processEvents(world)
         if(shouldQuit):
             return
-        checkKeys(world)        
         updateWorld(world,delta)
         draw(world,graphics,surface,screen)
 
 
+#####-----------------------------------------------------------------------------------------------------------------------------
+#### Main program
+#####-----------------------------------------------------------------------------------------------------------------------------
 
 def main():
-    # this is the main function of the app.  
-    # 1) load up and initialize everything we need.
-    # 2) start the main loop running
-    # 3) cleanup and quit
-
-    # Initialise screen
     pygame.init()
     screen = pygame.display.set_mode((WORLD_WIDTH, WORLD_HEIGHT))
     surface = pygame.Surface((WORLD_WIDTH, WORLD_HEIGHT),flags=SRCALPHA,depth=32)
-
     pygame.display.set_caption('Boids')
-
 
     # initialize the world
     world:World = World(WORLD_WIDTH,WORLD_HEIGHT)
