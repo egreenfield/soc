@@ -1,5 +1,12 @@
 # Flocking
 
+## Todo
+- angle of visibility
+- ability to save / load different parameter configurations
+- ability to change individual parameters at runtime.
+- fix transparency problem?
+- trails
+
 
 ## Challenges
 
