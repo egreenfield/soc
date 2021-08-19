@@ -7,18 +7,24 @@ import random
 import math
 from pygame import Surface
 
+CONTINUOUS = 0
+STOP = 1
+STEP = 2
+STARTING_RUNSTYLE = CONTINUOUS
+
 WORLD_WIDTH     = 1800
 WORLD_HEIGHT    = 900
 BIRD_HEIGHT = 10
 BIRD_WIDTH = 3
 BIRD_MAX_SPEED = 350
-BIRD_MIN_SPEED = 160
-NUM_BIRDS = 200
+BIRD_MIN_SPEED = 100
+STARTING_BIRD_COUNT = 200
 BIRD_LENGTH = 10
-BIRD_VISIBILITY = 100
+BIRD_VISIBILITY = 80
 BOX_MAGNETISM = 2000
-TOO_CLOSE = 10
-INDIVIDUALITY = 8
+TOO_CLOSE = 20
+INDIVIDUALITY = 2
+GRAVITATIONAL_STRENGTH = .05
 
 TOO_CLOSE2 = TOO_CLOSE*TOO_CLOSE
 
@@ -35,12 +41,11 @@ def wrap(v,w,h):
 
 class Bird:
     pos:Vector2
-    heading:float
     newPos:Vector2
+    gravity:Vector2 = None
     flock:any
     def __init__(self,flock,pos,heading,speed):
         self.pos = pos
-        self.heading = heading
         self.velocity = Vector2(speed,0).rotate(heading)
         self.speed = speed
         self.flock = flock
@@ -53,10 +58,11 @@ class Bird:
 #        velocity += self.stayInBox(self.flock.world.width,self.flock.world.height)
 
         nearbyBirds = self.flock.findBirdsNearby(self.pos,BIRD_VISIBILITY)        
+        self.gravity = None
         if(len(nearbyBirds) > 0):
             velocity += self.flyTowardsToNearbyBirds(nearbyBirds)
             velocity += self.stayAway(nearbyBirds)
-            velocity += self.stayAway(nearbyBirds)
+            velocity += self.fitIn(nearbyBirds)
 
         self.velocity = velocity
         self.limitSpeed()
@@ -93,7 +99,8 @@ class Bird:
             for aBird in nearbyBirds:
                 delta = delta + aBird.pos
             delta = delta / len(nearbyBirds)
-        return delta * .01
+        self.gravity = delta
+        return (delta-self.pos) * GRAVITATIONAL_STRENGTH
     
     def fitIn(self,nearbyBirds):
         delta = Vector2(0,0)
@@ -103,8 +110,11 @@ class Bird:
         return (delta - self.velocity) / INDIVIDUALITY
     
     def limitSpeed(self):
-        if self.velocity.length_squared() > (self.speed*self.speed):
-            self.velocity.scale_to_length(self.speed)
+        if self.velocity.length_squared() > (BIRD_MAX_SPEED*BIRD_MAX_SPEED):
+            self.velocity.scale_to_length(BIRD_MAX_SPEED)
+        elif self.velocity.length_squared() < (BIRD_MIN_SPEED*BIRD_MIN_SPEED):
+            self.velocity.scale_to_length(BIRD_MIN_SPEED)
+        
 
 
     def updatePosition(self):
@@ -118,14 +128,23 @@ class Flock:
         self.birds = []
         self.world = world
         pass
+    def clear(self):
+        self.birds = []
+
+    def killBird(self):
+        self.birds.pop()
+
     def createRandomBird(self):
         newBird = Bird(self,
         pos=Vector2(self.world.width*random.random(),self.world.height*random.random()),
         heading=random.random()*360,
+
         speed=random.random() * (BIRD_MAX_SPEED-BIRD_MIN_SPEED) + BIRD_MIN_SPEED
         )
         self.birds.append(newBird)
     def update(self,delta):
+        if delta == 0: 
+            return
         for aBird in self.birds:
             aBird.calculateNewPosition(delta)
         for aBird in self.birds:
@@ -159,10 +178,24 @@ class World:
     flock:Flock
     width:int
     height:int
+    runStyle:int
+    drawDiagnostics:bool = False
     def __init__(self,w:int,h:int):
         self.width = w
         self.height = h
         self.flock = Flock(self)
+        self.runStyle = STARTING_RUNSTYLE
+    def reset(self):
+        self.flock.clear()
+        for i in range(STARTING_BIRD_COUNT):
+            self.flock.createRandomBird()
+    def addBirds(self,count:int):
+        for i in range(count):
+            self.flock.createRandomBird()
+    def removeBirds(self,count:int):
+        for i in range(count):
+            self.flock.killBird()
+
 
 
 # this is data that gets used to draw the game.  It's separate from the 'state' because 
@@ -172,27 +205,30 @@ class World:
 # stick it here, and use it every time we draw.
 @dataclass
 class Graphics:
-    text = None
     world:World
-    birdSprite:Surface
 
     def __init__(self,world:World):
         self.world = world
-        self.birdSprite = Surface((BIRD_WIDTH,BIRD_HEIGHT),flags=SRCALPHA)
-        self.birdSprite.fill((255,0,0))
 
     def draw(self,screen):
         self.drawFlock(screen)
+
     def drawFlock(self,screen):
         f = self.world.flock
         for aBird in f.birds:
             self.drawBird(aBird,screen)
+
     def drawBird(self,bird:Bird,screen):
-        # s = pygame.transform.rotate(self.birdSprite,bird.heading)
-        # screen.blit(s,(bird.pos[0]-BIRD_WIDTH/2,bird.pos[1]-BIRD_HEIGHT/2))
         heading = Vector2(bird.velocity)
         heading.scale_to_length(BIRD_LENGTH)
+        if(self.world.drawDiagnostics):
+            if(bird.gravity != None):
+                pygame.draw.circle(screen,Color(230,230,255,a=.10),center=bird.pos,radius=BIRD_VISIBILITY)
+                pygame.draw.line(screen,(0,0,255),bird.pos,bird.gravity,1)
+            else:
+                pygame.draw.circle(screen,Color(255,230,230,a=.10),center=bird.pos,radius=BIRD_VISIBILITY)
         pygame.draw.line(screen,(255,0,0),bird.pos,bird.pos+heading,2)
+
 
 
 #---------------------------------------------------------------------------
@@ -208,6 +244,19 @@ def processEvents(world):
     for event in pygame.event.get():
         if event.type == QUIT:
             return True
+        if event.type == KEYDOWN:
+            if event.key == K_RETURN:
+                world.runStyle = STEP
+            elif event.key == K_SPACE:
+                world.runStyle = CONTINUOUS
+            elif event.key == K_r:
+                world.reset()
+            elif event.key == K_d:
+                world.drawDiagnostics = not world.drawDiagnostics
+            elif event.key == K_UP:
+                world.addBirds(10)
+            elif event.key == K_DOWN:
+                world.removeBirds(10)
 
     return False
 
@@ -234,10 +283,11 @@ def updateWorld(world,delta):
 # Drawing
 #
 #---------------------------------------------------------------------------
-def draw(world,graphics,screen):
+def draw(world,graphics,surface,screen):
     # this is where you draw the screen based on what the current state of your world is.
-    screen.fill((250,250,250))    
-    graphics.draw(screen)
+    surface.fill((250,250,250))    
+    graphics.draw(surface)
+    screen.blit(surface,(0,0))
     pygame.display.flip()
 
 
@@ -247,7 +297,7 @@ def draw(world,graphics,screen):
 #
 #---------------------------------------------------------------------------
 
-def runLoop(world,graphics,screen):
+def runLoop(world,graphics,surface,screen):
     # this is what's called the 'main loop' of the program.  It's basically 
     # how all programs work...apps, games, etc.  Sometimes you write it yourself (like we do here),
     # and sometimes a library handles it for you.  Regardless, the basics are the same...
@@ -258,13 +308,19 @@ def runLoop(world,graphics,screen):
     clock = pygame.time.Clock()
 
     while 1:
-        delta = clock.tick(30)
+        if(world.runStyle == CONTINUOUS):
+            delta = clock.tick(30)
+        elif world.runStyle == STEP:
+            delta = 100
+            world.runStyle = STOP
+        else:
+            delta = 0
         shouldQuit = processEvents(world)
         if(shouldQuit):
             return
         checkKeys(world)        
         updateWorld(world,delta)
-        draw(world,graphics,screen)
+        draw(world,graphics,surface,screen)
 
 
 
@@ -277,6 +333,8 @@ def main():
     # Initialise screen
     pygame.init()
     screen = pygame.display.set_mode((WORLD_WIDTH, WORLD_HEIGHT))
+    surface = pygame.Surface((WORLD_WIDTH, WORLD_HEIGHT),flags=SRCALPHA,depth=32)
+
     pygame.display.set_caption('Boids')
 
 
@@ -286,13 +344,12 @@ def main():
     # initialize graphics
     graphics = Graphics(world)
 
-    for i in range(NUM_BIRDS):
-        world.flock.createRandomBird()
+    world.reset()
 
-    draw(world,graphics,screen)
+    draw(world,graphics,surface,screen)
 
     # Event loop
-    runLoop(world,graphics,screen)
+    runLoop(world,graphics,screen,surface)
 
 
 
