@@ -26,6 +26,9 @@ class World:
 
     def reset(self):
         self.flock.clear()
+        self.resetBirds()
+    def resetBirds(self):
+        self.flock.clearBirds()
         for i in range(STARTING_BIRD_COUNT):
             self.flock.createRandomBird()
     def addBirds(self,count:int):

@@ -1,3 +1,4 @@
+from flock import Repulsor
 import pygame
 from constants import *
 from pygame.locals import *
@@ -36,6 +37,9 @@ class Graphics:
         f = self.world.flock
         for aBird in f.birds:
             self.drawBird(aBird)
+        for aRep in f.repulsors:
+            self.drawRepulsor(aRep)
+
     def drawTails(self,bird:Bird):
         start = 0
         try:
@@ -75,4 +79,5 @@ class Graphics:
         pygame.draw.line(self.birdSurface,(255,0,0),bird.pos,bird.pos+heading,2)
         if(self.world.drawTails):
             self.drawTails(bird)
-
+    def drawRepulsor(self,rep:Repulsor):
+        pygame.draw.circle(self.birdSurface,Color(0,0,0,150),center=rep.pos,radius=REPULSOR_DRAW_RADIUS)

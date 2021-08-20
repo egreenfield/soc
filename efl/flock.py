@@ -12,6 +12,7 @@ from parameters import params
 @dataclass
 class Repulsor:
     pos:Vector2
+    radius:float = DEFAULT_REPULSOR_RADIUS
 
 class Flock:
     birds:list[Bird]
@@ -22,7 +23,12 @@ class Flock:
         self.repulsors = []
         self.world = world
         pass
+
     def clear(self):
+        self.repulsors = []
+        self.clearBirds()
+
+    def clearBirds(self):
         self.birds = []
 
     def killBird(self):

@@ -44,13 +44,16 @@ class Toolbox:
     @classmethod
     def handleEvent(self,event):
         if event.type == KEYDOWN:
-            self.activeTool = self.getTool(event.key)            
             if event.key == K_QUESTION or event.key == K_SLASH:
                 self.printHelp()
+            newTool = self.getTool(event.key)            
+            if(newTool != None):
+                self.activeTool = newTool
+                print(f"Selected tool {newTool.name}")
         if self.activeTool:
-            if event.type == MOUSEBUTTONDOWN and event.button == 0:
+            if event.type == MOUSEBUTTONDOWN and event.button == 1:
                 self.activeTool.start(event)
-            if event.type == MOUSEBUTTONUP and event.button == 0:
+            if event.type == MOUSEBUTTONUP and event.button == 1:
                 self.activeTool.end(event)            
             if event.type == MOUSEMOTION and event.buttons[0]:
                 self.activeTool.move(event)

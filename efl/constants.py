@@ -23,8 +23,8 @@ WORLD_HEIGHT    = 900
 STARTING_BIRD_COUNT = 100
 BIRD_LENGTH = 10
 TAIL_LENGTH = 20
-
-
+REPULSOR_DRAW_RADIUS = 5
+DEFAULT_REPULSOR_RADIUS = 150
 #####-----------------------------------------------------------------------------------------------------------------------------
 #### Dynamic Parameters
 #####-----------------------------------------------------------------------------------------------------------------------------
@@ -38,4 +38,7 @@ class Parameters:
     tooClose:float 
     individuality:float
     gravitationalStrength:float
+    repulsionStrength:float
     fov:float
+
+params = Parameters()

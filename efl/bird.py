@@ -44,18 +44,25 @@ class Bird:
         timeDelta = timeDelta / 1000.0
         velocity = Vector2(0,0)
 
+        # account for current motion
         velocity += + self.currentFlight()
+
+        # add any forces from the edge of the screen
         if(self.flock.world.edgeBehavior == EDGE_RETURN):
             velocity += self.stayInBox(self.flock.world.width,self.flock.world.height)
 
-        #nearbyBirds = self.flock.findBirdsNearby(self.pos,params.birdVisibility)        
         nearbyBirds = self.flock.findBirdsInView(self.pos,self.velocity,params.fov,params.birdVisibility)
         self.gravity = None
         if(len(nearbyBirds) > 0):
+            # add forces attracting to nearby birds
             velocity += self.flyTowardsToNearbyBirds(nearbyBirds)
+            # add forces repelling from birds that are too close
             velocity += self.stayAway(nearbyBirds)
+            # add forces aligning with other birds
             velocity += self.fitIn(nearbyBirds)
 
+        nearbyRepulsors = self.flock.repulsors
+        velocity += self.stayAwayFromRepulsors(nearbyRepulsors)
         
         velocity = self.limitSpeed(velocity)
 
@@ -94,6 +101,19 @@ class Bird:
         for aBird in birds:
             if (aBird.pos - self.pos).length_squared() < tooClose2:
                 delta -= (aBird.pos - self.pos)
+        return delta
+
+    def stayAwayFromRepulsors(self,repulsors):
+        delta = Vector2(0,0)
+        tooClose2 = params.tooClose * params.tooClose
+        for aRepulsor in repulsors:
+            l2 = (aRepulsor.pos - self.pos).length_squared()
+            r2 = aRepulsor.radius*aRepulsor.radius
+            if l2 < r2:
+                force = (self.pos - aRepulsor.pos).normalize() * (1/l2) * params.repulsionStrength
+                delta += force
+        # if delta.length() > 0:
+        #     print(f"repulsion force is {delta.length()}")
         return delta
 
     def flyTowardsToNearbyBirds(self,nearbyBirds):

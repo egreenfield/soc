@@ -4,7 +4,8 @@ from parameters import Dynamic
 from constants import *
 from world import World
 from graphics import Graphics    
-from toolbox import Toolbox
+from toolbox import Tool, Toolbox
+from barier import BarrierTool
 
 #####-----------------------------------------------------------------------------------------------------------------------------
 #### USer Input/Events
@@ -20,7 +21,10 @@ def processEvents(world:World):
             elif event.key == K_SPACE:
                 world.runStyle = CONTINUOUS
             elif event.key == K_r:
-                world.reset()
+                if event.mod & KMOD_SHIFT:
+                    world.reset()
+                else:
+                    world.resetBirds()
             elif event.key == K_d:
                 world.drawDiagnostics = not world.drawDiagnostics
             elif event.key == K_UP:
@@ -97,6 +101,20 @@ def runLoop(world,graphics):
 #### Main program
 #####-----------------------------------------------------------------------------------------------------------------------------
 
+def initTools(world:World):
+
+    Dynamic.track(params)
+    Dynamic.add(name='birdMaxSpeed',code=K_m,key="m",min=20,max=1000,value=350)
+    Dynamic.add(name='birdMinSpeed',code=K_n,key="n",min=20,max=1000,value=270)
+    Dynamic.add(name='birdVisibility',code=K_v,key="v",min=1,max=200,value=80)
+    Dynamic.add(name='boxMagnetism',code=K_x,key="x",min=1,max=200,value=10)
+    Dynamic.add(name='tooClose',code=K_c,key="c",min=1,max=100,value=20)
+    Dynamic.add(name='individuality',code=K_i,key="i",min=1,max=100,value=5)
+    Dynamic.add(name='gravitationalStrength',code=K_g,key="g",min=0,max=1,value=.05)
+    Dynamic.add(name='fov',code=K_f,key="f",min=0,max=360,value=120)
+    Dynamic.add(name='repulsionStrength',code=K_q,key="q",min=1,max=100000,value=1)
+
+    Toolbox.registerTool(BarrierTool(world))
 def main():
     pygame.init()
     pygame.display.set_caption('Boids')
@@ -104,6 +122,7 @@ def main():
     # initialize the world
     world:World = World(WORLD_WIDTH,WORLD_HEIGHT)
 
+    initTools(world)
     # initialize graphics
     graphics = Graphics(world)
 
