@@ -53,8 +53,11 @@ class Bird:
             velocity += self.stayAway(nearbyBirds)
             velocity += self.fitIn(nearbyBirds)
 
-        self.velocity = velocity
-        self.limitSpeed()
+        
+        velocity = self.limitSpeed(velocity)
+
+        if timeDelta:
+            self.velocity = velocity
 
         delta = velocity * timeDelta        
         self.newPos = self.pos + delta
@@ -103,13 +106,14 @@ class Bird:
         delta /= len(nearbyBirds)
         return (delta - self.velocity) / params.individuality
     
-    def limitSpeed(self):
+    def limitSpeed(self,velocity):
         max = params.birdMaxSpeed
         min = params.birdMinSpeed
-        if self.velocity.length_squared() > (max*max):
-            self.velocity.scale_to_length(max)
-        elif self.velocity.length_squared() < (min*min):
-            self.velocity.scale_to_length(min)
+        if velocity.length_squared() > (max*max):
+            velocity.scale_to_length(max)
+        elif velocity.length_squared() < (min*min):
+            velocity.scale_to_length(min)
+        return velocity
     
     def updatePosition(self):
         self.tails.append(self.newPos)
