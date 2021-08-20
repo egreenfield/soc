@@ -22,25 +22,83 @@ EDGE_BEHAVIOR = EDGE_WRAP
 
 WORLD_WIDTH     = 1800
 WORLD_HEIGHT    = 900
-
+STARTING_BIRD_COUNT = 200
 #####-----------------------------------------------------------------------------------------------------------------------------
 #### Simulation constants
 #####-----------------------------------------------------------------------------------------------------------------------------
 
 BIRD_LENGTH = 10
 
-
-
-@dataclass
 class Constants:
-    birdMaxSpeed:float = 350
-    birdMinSpeed:float = 100
-    birdVisibility:float = 80
-    boxMagnetism:float = 100
-    tooClose:float = 20
-    individuality:float = 5
-    startingBirdCount:int = 200
-    gravitationalStrength:float = .05
+    birdMaxSpeed:float 
+    birdMinSpeed:float 
+    birdVisibility:float
+    boxMagnetism:float 
+    tooClose:float 
+    individuality:float
+    gravitationalStrength:float
+
+
+const = Constants()
+
+class Parameter:
+    name:str
+    key:str
+    code:int
+    min:float
+    max:float
+    value:float
+
+    params = {}
+
+    def setValue(self,newValue:float):        
+        self.value = newValue
+        setattr(const,self.name,newValue)
+    
+    def adjustValue(self,delta:float):
+        v = self.value + delta
+        if v > self.max:
+            v = self.max
+        if v < self.min:
+            v = self.min
+        self.value = v
+        setattr(const,self.name,self.value)
+
+    def mapValue(self,pct:float):
+        return self.min + (self.max-self.min)*pct
+
+    def mapRelativeValue(self,pct:float):
+        return (self.max-self.min)*pct
+
+    @classmethod
+    def get(self,code:int):
+        if code in self.params:
+            return self.params[code]
+        return None
+
+    @classmethod
+    def add(self,**kwargs):
+        p = Parameter()
+        for aKey in kwargs:
+            setattr(p,aKey,kwargs[aKey])
+        self.params[kwargs['code']] = p #Parameter(**kwargs)
+        setattr(const,kwargs['name'],kwargs['value'])
+
+    @classmethod
+    def printHelp(self):
+        result = ""
+        for aParam in self.params.values():
+            result += f"{aParam.key}:{aParam.name} ({aParam.value})\n"
+        print(result)
+
+Parameter.add(name='birdMaxSpeed',code=K_m,key="m",min=20,max=1000,value=350)
+Parameter.add(name='birdMinSpeed',code=K_n,key="n",min=20,max=1000,value=100)
+Parameter.add(name='birdVisibility',code=K_v,key="v",min=1,max=200,value=80)
+Parameter.add(name='boxMagnetism',code=K_x,key="x",min=1,max=200,value=10)
+Parameter.add(name='tooClose',code=K_c,key="m",min=1,max=100,value=20)
+Parameter.add(name='individuality',code=K_i,key="i",min=1,max=30,value=5)
+Parameter.add(name='gravitationalStrength',code=K_g,key="g",min=.01,max=1,value=.05)
+
 
     
 #####-----------------------------------------------------------------------------------------------------------------------------
@@ -75,14 +133,12 @@ class Bird:
     flock:any
     tails:list[Vector2]
     wrapped:bool = False
-    c:Constants
     def __init__(self,flock,pos,heading,speed):
         self.pos = pos
         self.velocity = Vector2(speed,0).rotate(heading)
         self.speed = speed
         self.flock = flock
         self.tails = []
-        self.c = flock.world.constants
 
     def calculateNewPosition(self,timeDelta):
         timeDelta = timeDelta / 1000.0
@@ -92,7 +148,7 @@ class Bird:
         if(self.flock.world.edgeBehavior == EDGE_RETURN):
             velocity += self.stayInBox(self.flock.world.width,self.flock.world.height)
 
-        nearbyBirds = self.flock.findBirdsNearby(self.pos,self.c.birdVisibility)        
+        nearbyBirds = self.flock.findBirdsNearby(self.pos,const.birdVisibility)        
         self.gravity = None
         if(len(nearbyBirds) > 0):
             velocity += self.flyTowardsToNearbyBirds(nearbyBirds)
@@ -113,7 +169,7 @@ class Bird:
         return self.velocity
 
     def stayInBox(self,width,height):
-        b = self.c.boxMagnetism
+        b = const.boxMagnetism
         delta = Vector2(0,0)
         if(self.pos.x < 0):
             delta.x += b
@@ -127,7 +183,7 @@ class Bird:
 
     def stayAway(self,birds):
         delta = Vector2(0,0)
-        tooClose2 = self.c.tooClose * self.c.tooClose
+        tooClose2 = const.tooClose * const.tooClose
         for aBird in birds:
             if (aBird.pos - self.pos).length_squared() < tooClose2:
                 delta -= (aBird.pos - self.pos)
@@ -140,18 +196,18 @@ class Bird:
                 delta = delta + aBird.pos
             delta = delta / len(nearbyBirds)
         self.gravity = delta
-        return (delta-self.pos) * self.c.gravitationalStrength
+        return (delta-self.pos) * const.gravitationalStrength
     
     def fitIn(self,nearbyBirds):
         delta = Vector2(0,0)
         for aBird in nearbyBirds:
             delta += aBird.velocity
         delta /= len(nearbyBirds)
-        return (delta - self.velocity) / self.c.individuality
+        return (delta - self.velocity) / const.individuality
     
     def limitSpeed(self):
-        max = self.c.birdMaxSpeed
-        min = self.c.birdMinSpeed
+        max = const.birdMaxSpeed
+        min = const.birdMinSpeed
         if self.velocity.length_squared() > (max*max):
             self.velocity.scale_to_length(max)
         elif self.velocity.length_squared() < (min*min):
@@ -187,7 +243,7 @@ class Flock:
         pos=Vector2(self.world.width*random.random(),self.world.height*random.random()),
         heading=random.random()*360,
 
-        speed=random.random() * (self.world.constants.birdMaxSpeed-self.world.constants.birdMinSpeed) + self.world.constants.birdMinSpeed
+        speed=random.random() * (const.birdMaxSpeed-const.birdMinSpeed) + const.birdMinSpeed
         )
         self.birds.append(newBird)
     def update(self,delta):
@@ -220,20 +276,21 @@ class World:
     height:int
     runStyle:int
     drawDiagnostics:bool = False
-    constants:Constants
     drawTails:bool = False
     edgeBehavior:int = EDGE_BEHAVIOR
+    activeParameter:Parameter = None
+    
+    
     def __init__(self,w:int,h:int):
         self.width = w
         self.height = h
         self.flock = Flock(self)
         self.runStyle = STARTING_RUNSTYLE
-        self.constants = Constants()
 
 
     def reset(self):
         self.flock.clear()
-        for i in range(self.constants.startingBirdCount):
+        for i in range(STARTING_BIRD_COUNT):
             self.flock.createRandomBird()
     def addBirds(self,count:int):
         for i in range(count):
@@ -287,11 +344,11 @@ class Graphics:
 
     def drawDiagnostics(self,bird:Bird):
         if(bird.gravity != None):
-            pygame.draw.circle(self.debugSurface,Color(230,230,255,150),center=bird.pos,radius=self.world.constants.birdVisibility)
+            pygame.draw.circle(self.debugSurface,Color(230,230,255,150),center=bird.pos,radius=const.birdVisibility)
             if(not bird.didWrap):
                 pygame.draw.line(self.birdSurface,(0,0,255),bird.pos,bird.gravity,1)
         else:
-            pygame.draw.circle(self.debugSurface,Color(255,230,230,150),center=bird.pos,radius=self.world.constants.birdVisibility)
+            pygame.draw.circle(self.debugSurface,Color(255,230,230,150),center=bird.pos,radius=const.birdVisibility)
 
     def drawBird(self,bird:Bird):
         heading = Vector2(bird.velocity)
@@ -306,15 +363,26 @@ class Graphics:
 #####-----------------------------------------------------------------------------------------------------------------------------
 #### USer Input/Events
 #####-----------------------------------------------------------------------------------------------------------------------------
-def processEvents(world):
-    # this is called "event driven programming."  When stuff
-    # happens in the computer's environment, it puts an event in a list.
-    # your code looks at the list from time to time to see what's happened, and 
-    # reacts accordingly
+def adjustParameter(world:World,rel):
+    if world.activeParameter == None:
+        return
+
+    pct = rel[0] / world.width
+    delta = world.activeParameter.mapRelativeValue(pct)
+    #world.activeParameter.setValue(newValue)    
+    world.activeParameter.adjustValue(delta)    
+    print(f"setting {world.activeParameter.name} to {world.activeParameter.value}")
+
+    
+def processEvents(world:World):
     for event in pygame.event.get():
         if event.type == QUIT:
             return True
         if event.type == KEYDOWN:
+            param = Parameter.get(event.key)
+            if(param != None):
+                world.activeParameter = param
+                print(f"controlling {param.name}")
             if event.key == K_RETURN:
                 world.runStyle = STEP
             elif event.key == K_SPACE:
@@ -331,6 +399,14 @@ def processEvents(world):
                 world.edgeBehavior = 1 - world.edgeBehavior
             elif event.key == K_t:
                 world.drawTails = not world.drawTails
+            elif event.key == K_QUESTION or event.key == K_SLASH:
+                Parameter.printHelp()
+        if event.type == KEYUP:
+            world.activeParameter = None
+        if event.type == MOUSEMOTION:
+            if(event.buttons[0]):
+                adjustParameter(world,event.rel)
+
 
     return False
 
