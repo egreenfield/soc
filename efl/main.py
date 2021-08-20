@@ -39,16 +39,26 @@ GRAVITATIONAL_STRENGTH = .05
 
 TOO_CLOSE2 = TOO_CLOSE*TOO_CLOSE
 
+#####-----------------------------------------------------------------------------------------------------------------------------
+#### Graphics constants
+#####-----------------------------------------------------------------------------------------------------------------------------
+TAIL_LENGTH = 20
+
 def wrap(v,w,h):
+    didWrap = False
     if v.x < 0:
         v.x = w + v.x
+        didWrap = True
     elif v.x > w:
         v.x = v.x - w
+        didWrap = True
     if v.y < 0:
         v.y = h + v.y
+        didWrap = True
     elif v.y > h:
         v.y = v.y - h
-    return v
+        didWrap = True
+    return (v,didWrap)
 
 #####-----------------------------------------------------------------------------------------------------------------------------
 #### Bird
@@ -59,11 +69,15 @@ class Bird:
     newPos:Vector2
     gravity:Vector2 = None
     flock:any
+    tails:list[Vector2]
+    wrapped:bool = False
+
     def __init__(self,flock,pos,heading,speed):
         self.pos = pos
         self.velocity = Vector2(speed,0).rotate(heading)
         self.speed = speed
         self.flock = flock
+        self.tails = []
 
     def calculateNewPosition(self,timeDelta):
         timeDelta = timeDelta / 1000.0
@@ -86,7 +100,9 @@ class Bird:
         delta = velocity * timeDelta        
         self.newPos = self.pos + delta
         if(self.flock.world.edgeBehavior == EDGE_WRAP):
-            self.newPos = wrap(self.newPos,self.flock.world.width,self.flock.world.height)
+            self.newPos,self.didWrap = wrap(self.newPos,self.flock.world.width,self.flock.world.height)
+            if self.didWrap:
+                self.tails.append(None)
 
     def currentFlight(self):
         return self.velocity
@@ -133,6 +149,10 @@ class Bird:
             self.velocity.scale_to_length(BIRD_MIN_SPEED)
     
     def updatePosition(self):
+        self.tails.append(self.newPos)
+        if len(self.tails) > TAIL_LENGTH:
+            self.tails.pop(0)
+
         self.pos = self.newPos
         self.newPos = None
 
@@ -191,6 +211,7 @@ class World:
     height:int
     runStyle:int
     drawDiagnostics:bool = False
+    drawTails:bool = False
     edgeBehavior:int = EDGE_BEHAVIOR
     def __init__(self,w:int,h:int):
         self.width = w
@@ -219,26 +240,55 @@ class Graphics:
 
     def __init__(self,world:World):
         self.world = world
+        self.screen = pygame.display.set_mode((WORLD_WIDTH, WORLD_HEIGHT))
+        self.birdSurface = pygame.Surface((WORLD_WIDTH, WORLD_HEIGHT),flags=SRCALPHA,depth=32)
+        self.tailSurface = pygame.Surface((WORLD_WIDTH, WORLD_HEIGHT),flags=SRCALPHA,depth=32)
+        self.debugSurface = pygame.Surface((WORLD_WIDTH, WORLD_HEIGHT),flags=SRCALPHA,depth=32)
 
-    def draw(self,screen):
-        self.drawFlock(screen)
+    def draw(self):
+        self.screen.fill((250,250,250))    
+        self.birdSurface.fill((0,0,0,0))    
+        self.tailSurface.fill((0,0,0,0))    
+        self.debugSurface.fill((0,0,0,0))    
+        self.drawFlock()
+        self.screen.blit(self.tailSurface,(0,0))
+        self.screen.blit(self.debugSurface,(0,0))
+        self.screen.blit(self.birdSurface,(0,0))
 
-    def drawFlock(self,screen):
+
+    def drawFlock(self):
         f = self.world.flock
         for aBird in f.birds:
-            self.drawBird(aBird,screen)
+            self.drawBird(aBird)
+    def drawTails(self,bird:Bird):
+        start = 0
+        try:
+            while True:
+                end = bird.tails.index(None,start)
+                if(end-start >= 2):
+                    pygame.draw.lines(self.tailSurface,(0,0,150,50),False,bird.tails[start:end])
+                start = end+1
+        except:            
+            pass
+        if(len(bird.tails)-start > 2):
+            pygame.draw.lines(self.tailSurface,(0,0,150,50),False,bird.tails[start:])
 
-    def drawBird(self,bird:Bird,screen):
+    def drawDiagnostics(self,bird:Bird):
+        if(bird.gravity != None):
+            pygame.draw.circle(self.debugSurface,Color(230,230,255,150),center=bird.pos,radius=BIRD_VISIBILITY)
+            if(not bird.didWrap):
+                pygame.draw.line(self.birdSurface,(0,0,255),bird.pos,bird.gravity,1)
+        else:
+            pygame.draw.circle(self.debugSurface,Color(255,230,230,150),center=bird.pos,radius=BIRD_VISIBILITY)
+
+    def drawBird(self,bird:Bird):
         heading = Vector2(bird.velocity)
         heading.scale_to_length(BIRD_LENGTH)
         if(self.world.drawDiagnostics):
-            if(bird.gravity != None):
-                pygame.draw.circle(screen,Color(230,230,255,a=.10),center=bird.pos,radius=BIRD_VISIBILITY)
-                pygame.draw.line(screen,(0,0,255),bird.pos,bird.gravity,1)
-            else:
-                pygame.draw.circle(screen,Color(255,230,230,a=.10),center=bird.pos,radius=BIRD_VISIBILITY)
-        pygame.draw.line(screen,(255,0,0),bird.pos,bird.pos+heading,2)
-
+            self.drawDiagnostics(bird)
+        pygame.draw.line(self.birdSurface,(255,0,0),bird.pos,bird.pos+heading,2)
+        if(self.world.drawTails):
+            self.drawTails(bird)
 
 
 #####-----------------------------------------------------------------------------------------------------------------------------
@@ -267,6 +317,8 @@ def processEvents(world):
                 world.removeBirds(10)
             elif event.key == K_e:
                 world.edgeBehavior = 1 - world.edgeBehavior
+            elif event.key == K_t:
+                world.drawTails = not world.drawTails
 
     return False
 
@@ -282,11 +334,9 @@ def updateWorld(world,delta):
 # Drawing
 #
 #---------------------------------------------------------------------------
-def draw(world,graphics,surface,screen):
+def draw(world,graphics):
     # this is where you draw the screen based on what the current state of your world is.
-    surface.fill((250,250,250))    
-    graphics.draw(surface)
-    screen.blit(surface,(0,0))
+    graphics.draw()
     pygame.display.flip()
 
 
@@ -296,7 +346,7 @@ def draw(world,graphics,surface,screen):
 #
 #---------------------------------------------------------------------------
 
-def runLoop(world,graphics,surface,screen):
+def runLoop(world,graphics):
     # this is what's called the 'main loop' of the program.  It's basically 
     # how all programs work...apps, games, etc.  Sometimes you write it yourself (like we do here),
     # and sometimes a library handles it for you.  Regardless, the basics are the same...
@@ -318,7 +368,7 @@ def runLoop(world,graphics,surface,screen):
         if(shouldQuit):
             return
         updateWorld(world,delta)
-        draw(world,graphics,surface,screen)
+        draw(world,graphics)
 
 
 #####-----------------------------------------------------------------------------------------------------------------------------
@@ -327,8 +377,6 @@ def runLoop(world,graphics,surface,screen):
 
 def main():
     pygame.init()
-    screen = pygame.display.set_mode((WORLD_WIDTH, WORLD_HEIGHT))
-    surface = pygame.Surface((WORLD_WIDTH, WORLD_HEIGHT),flags=SRCALPHA,depth=32)
     pygame.display.set_caption('Boids')
 
     # initialize the world
@@ -339,10 +387,10 @@ def main():
 
     world.reset()
 
-    draw(world,graphics,surface,screen)
+    draw(world,graphics)
 
     # Event loop
-    runLoop(world,graphics,screen,surface)
+    runLoop(world,graphics)
 
 
 
