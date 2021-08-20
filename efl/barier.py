@@ -30,7 +30,6 @@ class BarrierTool:
         keys=pygame.key.get_pressed()
         if keys[K_LSHIFT]:
             self.selected = self.addBarrier(event)
-            return
         else:
             self.selected = self.world.flock.findBarrierAtPoint(Vector2(event.pos))
         self.startPoint = Vector2(event.pos)
