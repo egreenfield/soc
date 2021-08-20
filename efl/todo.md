@@ -3,13 +3,13 @@
 ## Todo
 - angle of visibility
 - ability to save / load different parameter configurations
-- ability to change individual parameters at runtime.
 - fix the 'too close' logic so it's not so jarring
 - add some randomness to motion of flocks
 - add repulsor behavior to edge of screen
 - add quad tree / tile tree optimization
 
 ## Done
+- ability to change individual parameters at runtime.
 - trails
 - fix transparency problem?
 
