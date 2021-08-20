@@ -27,18 +27,22 @@ WORLD_HEIGHT    = 900
 #### Simulation constants
 #####-----------------------------------------------------------------------------------------------------------------------------
 
-BIRD_MAX_SPEED = 350
-BIRD_MIN_SPEED = 100
-STARTING_BIRD_COUNT = 200
 BIRD_LENGTH = 10
-BIRD_VISIBILITY = 80
-BOX_MAGNETISM = 100
-TOO_CLOSE = 20
-INDIVIDUALITY = 5
-GRAVITATIONAL_STRENGTH = .05
 
-TOO_CLOSE2 = TOO_CLOSE*TOO_CLOSE
 
+
+@dataclass
+class Constants:
+    birdMaxSpeed:float = 350
+    birdMinSpeed:float = 100
+    birdVisibility:float = 80
+    boxMagnetism:float = 100
+    tooClose:float = 20
+    individuality:float = 5
+    startingBirdCount:int = 200
+    gravitationalStrength:float = .05
+
+    
 #####-----------------------------------------------------------------------------------------------------------------------------
 #### Graphics constants
 #####-----------------------------------------------------------------------------------------------------------------------------
@@ -71,13 +75,14 @@ class Bird:
     flock:any
     tails:list[Vector2]
     wrapped:bool = False
-
+    c:Constants
     def __init__(self,flock,pos,heading,speed):
         self.pos = pos
         self.velocity = Vector2(speed,0).rotate(heading)
         self.speed = speed
         self.flock = flock
         self.tails = []
+        self.c = flock.world.constants
 
     def calculateNewPosition(self,timeDelta):
         timeDelta = timeDelta / 1000.0
@@ -87,7 +92,7 @@ class Bird:
         if(self.flock.world.edgeBehavior == EDGE_RETURN):
             velocity += self.stayInBox(self.flock.world.width,self.flock.world.height)
 
-        nearbyBirds = self.flock.findBirdsNearby(self.pos,BIRD_VISIBILITY)        
+        nearbyBirds = self.flock.findBirdsNearby(self.pos,self.c.birdVisibility)        
         self.gravity = None
         if(len(nearbyBirds) > 0):
             velocity += self.flyTowardsToNearbyBirds(nearbyBirds)
@@ -108,21 +113,23 @@ class Bird:
         return self.velocity
 
     def stayInBox(self,width,height):
+        b = self.c.boxMagnetism
         delta = Vector2(0,0)
         if(self.pos.x < 0):
-            delta.x += BOX_MAGNETISM
+            delta.x += b
         elif self.pos.x > width:
-            delta.x -= BOX_MAGNETISM
+            delta.x -= b
         if self.pos.y < 0:
-            delta.y += BOX_MAGNETISM
+            delta.y += b
         elif self.pos.y > height:
-            delta.y -= BOX_MAGNETISM
+            delta.y -= b
         return delta
 
     def stayAway(self,birds):
         delta = Vector2(0,0)
+        tooClose2 = self.c.tooClose * self.c.tooClose
         for aBird in birds:
-            if (aBird.pos - self.pos).length_squared() < TOO_CLOSE2:
+            if (aBird.pos - self.pos).length_squared() < tooClose2:
                 delta -= (aBird.pos - self.pos)
         return delta
 
@@ -133,20 +140,22 @@ class Bird:
                 delta = delta + aBird.pos
             delta = delta / len(nearbyBirds)
         self.gravity = delta
-        return (delta-self.pos) * GRAVITATIONAL_STRENGTH
+        return (delta-self.pos) * self.c.gravitationalStrength
     
     def fitIn(self,nearbyBirds):
         delta = Vector2(0,0)
         for aBird in nearbyBirds:
             delta += aBird.velocity
         delta /= len(nearbyBirds)
-        return (delta - self.velocity) / INDIVIDUALITY
+        return (delta - self.velocity) / self.c.individuality
     
     def limitSpeed(self):
-        if self.velocity.length_squared() > (BIRD_MAX_SPEED*BIRD_MAX_SPEED):
-            self.velocity.scale_to_length(BIRD_MAX_SPEED)
-        elif self.velocity.length_squared() < (BIRD_MIN_SPEED*BIRD_MIN_SPEED):
-            self.velocity.scale_to_length(BIRD_MIN_SPEED)
+        max = self.c.birdMaxSpeed
+        min = self.c.birdMinSpeed
+        if self.velocity.length_squared() > (max*max):
+            self.velocity.scale_to_length(max)
+        elif self.velocity.length_squared() < (min*min):
+            self.velocity.scale_to_length(min)
     
     def updatePosition(self):
         self.tails.append(self.newPos)
@@ -178,7 +187,7 @@ class Flock:
         pos=Vector2(self.world.width*random.random(),self.world.height*random.random()),
         heading=random.random()*360,
 
-        speed=random.random() * (BIRD_MAX_SPEED-BIRD_MIN_SPEED) + BIRD_MIN_SPEED
+        speed=random.random() * (self.world.constants.birdMaxSpeed-self.world.constants.birdMinSpeed) + self.world.constants.birdMinSpeed
         )
         self.birds.append(newBird)
     def update(self,delta):
@@ -211,6 +220,7 @@ class World:
     height:int
     runStyle:int
     drawDiagnostics:bool = False
+    constants:Constants
     drawTails:bool = False
     edgeBehavior:int = EDGE_BEHAVIOR
     def __init__(self,w:int,h:int):
@@ -218,10 +228,12 @@ class World:
         self.height = h
         self.flock = Flock(self)
         self.runStyle = STARTING_RUNSTYLE
+        self.constants = Constants()
+
 
     def reset(self):
         self.flock.clear()
-        for i in range(STARTING_BIRD_COUNT):
+        for i in range(self.constants.startingBirdCount):
             self.flock.createRandomBird()
     def addBirds(self,count:int):
         for i in range(count):
@@ -275,11 +287,11 @@ class Graphics:
 
     def drawDiagnostics(self,bird:Bird):
         if(bird.gravity != None):
-            pygame.draw.circle(self.debugSurface,Color(230,230,255,150),center=bird.pos,radius=BIRD_VISIBILITY)
+            pygame.draw.circle(self.debugSurface,Color(230,230,255,150),center=bird.pos,radius=self.world.constants.birdVisibility)
             if(not bird.didWrap):
                 pygame.draw.line(self.birdSurface,(0,0,255),bird.pos,bird.gravity,1)
         else:
-            pygame.draw.circle(self.debugSurface,Color(255,230,230,150),center=bird.pos,radius=BIRD_VISIBILITY)
+            pygame.draw.circle(self.debugSurface,Color(255,230,230,150),center=bird.pos,radius=self.world.constants.birdVisibility)
 
     def drawBird(self,bird:Bird):
         heading = Vector2(bird.velocity)
