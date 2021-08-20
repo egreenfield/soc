@@ -30,7 +30,15 @@ def processEvents(world:World):
                 world.edgeBehavior = 1 - world.edgeBehavior
             elif event.key == K_t:
                 world.drawTails = not world.drawTails
-        
+        if event.type == MOUSEBUTTONDOWN and event.button == 3:
+            world.mouse.pos = event.pos
+            world.flock.addRepulsor(world.mouse)
+        if event.type == MOUSEBUTTONUP and event.button == 3:
+            world.mouse.pos = event.pos
+            world.flock.removeRepulsor(world.mouse)
+        if event.type == MOUSEMOTION:
+            world.mouse.pos = event.pos
+
         Dynamic.handleEvent(event,world.width)
 
     return False

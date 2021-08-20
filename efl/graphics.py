@@ -4,6 +4,7 @@ from pygame.locals import *
 from world import World
 from bird import Bird
 from pygame.math import Vector2
+import math
 
 
 #####-----------------------------------------------------------------------------------------------------------------------------
@@ -46,14 +47,24 @@ class Graphics:
             pass
         if(len(bird.tails)-start > 2):
             pygame.draw.lines(self.tailSurface,(0,0,150,50),False,bird.tails[start:])
+    
+    def drawWedge(self,color,center,radius,angle,angleWidth):
+        rc=pygame.Rect(center[0]-radius,center[1]-radius,radius*2,radius*2)
+        pygame.draw.arc(self.debugSurface,color,rc,angle-angleWidth/2,angle+angleWidth/2,2)
+        rad1 = Vector2(radius,0).rotate_rad(-angle+angleWidth/2)
+        pygame.draw.line(self.debugSurface,color,center,center+rad1,2)
+        rad1 = Vector2(radius,0).rotate_rad(-angle-angleWidth/2)
+        pygame.draw.line(self.debugSurface,color,center,center+rad1,2)
 
     def drawDiagnostics(self,bird:Bird):
+        angle = bird.velocity.as_polar()[1]/180 * math.pi
         if(bird.gravity != None):
-            pygame.draw.circle(self.debugSurface,Color(230,230,255,150),center=bird.pos,radius=params.birdVisibility)
+            self.drawWedge(Color(230,230,255,200),bird.pos,params.birdVisibility,-angle,params.fov*math.pi/180)
+#            pygame.draw.circle(self.debugSurface,Color(230,230,255,150),center=bird.pos,radius=params.birdVisibility)
             if(not bird.didWrap):
                 pygame.draw.line(self.birdSurface,(0,0,255),bird.pos,bird.gravity,1)
         else:
-            pygame.draw.circle(self.debugSurface,Color(255,230,230,150),center=bird.pos,radius=params.birdVisibility)
+            self.drawWedge(Color(255,230,230,200),bird.pos,params.birdVisibility,-angle,params.fov*math.pi/180)
 
     def drawBird(self,bird:Bird):
         heading = Vector2(bird.velocity)

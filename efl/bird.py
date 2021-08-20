@@ -46,7 +46,8 @@ class Bird:
         if(self.flock.world.edgeBehavior == EDGE_RETURN):
             velocity += self.stayInBox(self.flock.world.width,self.flock.world.height)
 
-        nearbyBirds = self.flock.findBirdsNearby(self.pos,params.birdVisibility)        
+        #nearbyBirds = self.flock.findBirdsNearby(self.pos,params.birdVisibility)        
+        nearbyBirds = self.flock.findBirdsInView(self.pos,self.velocity,params.fov,params.birdVisibility)
         self.gravity = None
         if(len(nearbyBirds) > 0):
             velocity += self.flyTowardsToNearbyBirds(nearbyBirds)
@@ -65,20 +66,23 @@ class Bird:
             self.newPos,self.didWrap = wrap(self.newPos,self.flock.world.width,self.flock.world.height)
             if self.didWrap:
                 self.tails.append(None)
+        else:
+            self.didWrap = False
 
     def currentFlight(self):
         return self.velocity
 
     def stayInBox(self,width,height):
         b = params.boxMagnetism
+        margin = EDGE_MARGIN
         delta = Vector2(0,0)
-        if(self.pos.x < 0):
+        if(self.pos.x < margin):
             delta.x += b
-        elif self.pos.x > width:
+        elif self.pos.x > width-margin:
             delta.x -= b
-        if self.pos.y < 0:
+        if self.pos.y < margin:
             delta.y += b
-        elif self.pos.y > height:
+        elif self.pos.y > height-margin:
             delta.y -= b
         return delta
 
