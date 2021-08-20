@@ -1,6 +1,7 @@
-from constants import *
 import pygame
+from constants import *
 from pygame.locals import *
+from parameters import params
 from world import World
 from bird import Bird
 from pygame.math import Vector2

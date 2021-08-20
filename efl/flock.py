@@ -3,6 +3,7 @@ from bird import Bird
 from pygame.math import Vector2
 import random
 from constants import *
+from parameters import params
 
 #####-----------------------------------------------------------------------------------------------------------------------------
 #### Flock

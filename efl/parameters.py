@@ -1,7 +1,8 @@
 
 from typing import ClassVar
 from pygame.locals import *
-
+from constants import *
+from toolbox import Toolbox
 
 class Dynamic:
     name:str
@@ -37,47 +38,39 @@ class Dynamic:
     def mapRelativeValue(self,pct:float):
         return (self.max-self.min)*pct
 
-    active = None
 
-    @classmethod
-    def get(self,code:int):
-        if code in self.dynamicParameters:
-            return self.dynamicParameters[code]
-        return None
+
+    def getHelp(self):
+        return f"{self.key}:{self.name} ({self.value})\n"
+
+    def move(self, event):
+        rel = event.rel
+        width = WORLD_WIDTH
+        pct = rel[0] / width
+        delta = self.mapRelativeValue(pct)
+        self.adjustValue(delta)    
+        print(f"setting {self.name} to {self.value}")
 
     @classmethod
     def add(self,**kwargs):
         p = Dynamic()
         for aKey in kwargs:
             setattr(p,aKey,kwargs[aKey])
+        Toolbox.registerTool(p)
         self.dynamicParameters[kwargs['code']] = p #Parameter(**kwargs)
         setattr(Dynamic.readOnlyParams,kwargs['name'],kwargs['value'])
 
-    @classmethod
-    def printHelp(self):
-        result = ""
-        for aParam in self.dynamicParameters.values():
-            result += f"{aParam.key}:{aParam.name} ({aParam.value})\n"
-        print(result)
 
-    @classmethod
-    def adjustByMouse(self, rel, width):
-        if self.active == None:
-            return
 
-        pct = rel[0] / width
-        delta = self.active.mapRelativeValue(pct)
-        self.active.adjustValue(delta)    
-        print(f"setting {self.active.name} to {self.active.value}")
 
-    @classmethod
-    def handleEvent(self,event,width):
-        if event.type == KEYDOWN:
-            self.active = self.get(event.key)            
-            if event.key == K_QUESTION or event.key == K_SLASH:
-                self.printHelp()
-        if event.type == KEYUP:
-            self.active = None
-        if event.type == MOUSEMOTION:
-            if(event.buttons[0]):
-                self.adjustByMouse(event.rel,width)
+params = Parameters()
+
+Dynamic.track(params)
+Dynamic.add(name='birdMaxSpeed',code=K_m,key="m",min=20,max=1000,value=350)
+Dynamic.add(name='birdMinSpeed',code=K_n,key="n",min=20,max=1000,value=270)
+Dynamic.add(name='birdVisibility',code=K_v,key="v",min=1,max=200,value=80)
+Dynamic.add(name='boxMagnetism',code=K_x,key="x",min=1,max=200,value=10)
+Dynamic.add(name='tooClose',code=K_c,key="c",min=1,max=100,value=20)
+Dynamic.add(name='individuality',code=K_i,key="i",min=1,max=100,value=5)
+Dynamic.add(name='gravitationalStrength',code=K_g,key="g",min=0,max=1,value=.05)
+Dynamic.add(name='fov',code=K_f,key="f",min=0,max=360,value=120)

@@ -4,6 +4,7 @@ from parameters import Dynamic
 from constants import *
 from world import World
 from graphics import Graphics    
+from toolbox import Toolbox
 
 #####-----------------------------------------------------------------------------------------------------------------------------
 #### USer Input/Events
@@ -39,7 +40,7 @@ def processEvents(world:World):
         if event.type == MOUSEMOTION:
             world.mouse.pos = event.pos
 
-        Dynamic.handleEvent(event,world.width)
+        Toolbox.handleEvent(event)
 
     return False
 
