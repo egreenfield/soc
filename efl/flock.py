@@ -13,6 +13,8 @@ from parameters import params
 class Repulsor:
     pos:Vector2
     radius:float = DEFAULT_REPULSOR_RADIUS
+    def __init__(self,pos):
+        self.pos = Vector2(pos)
 
 class Flock:
     birds:list[Bird]
@@ -54,7 +56,12 @@ class Flock:
             self.repulsors.remove(r)
         except:
             pass
-        
+    def findBarrierAtPoint(self,pos:Vector2):
+        for aRep in self.repulsors:
+            if (aRep.pos - pos).length_squared() < MOUSE_HIT_DISTANCE*MOUSE_HIT_DISTANCE:
+                return aRep
+        return None
+
     def update(self,delta):
         if delta == 0: 
             return

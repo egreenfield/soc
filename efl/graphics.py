@@ -27,6 +27,7 @@ class Graphics:
         self.screen.fill((250,250,250))    
         self.birdSurface.fill((0,0,0,0))    
         self.tailSurface.fill((0,0,0,0))    
+        self.repulsorSurface.fill((0,0,0,0))    
         self.debugSurface.fill((0,0,0,0))    
         self.drawFlock()
         self.screen.blit(self.debugSurface,(0,0))
