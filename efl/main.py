@@ -112,7 +112,7 @@ def initTools(world:World):
     Dynamic.add(name='individuality',code=K_i,key="i",min=1,max=100,value=5)
     Dynamic.add(name='gravitationalStrength',code=K_g,key="g",min=0,max=1,value=.05)
     Dynamic.add(name='fov',code=K_f,key="f",min=0,max=360,value=120)
-    Dynamic.add(name='repulsionStrength',code=K_q,key="q",min=1,max=100000,value=1)
+    Dynamic.add(name='repulsionStrength',code=K_q,key="q",min=1,max=10,value=3)
 
     Toolbox.registerTool(BarrierTool(world))
 def main():

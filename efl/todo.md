@@ -1,17 +1,19 @@
 # Flocking
 
 ## Todo
-- angle of visibility
-- ability to save / load different parameter configurations
+- make screen box force grow the farther you are from the edge
+- drag and delete repulsors
+- add quad tree / tile tree optimization
 - fix the 'too close' logic so it's not so jarring
 - add some randomness to motion of flocks
-- add repulsor behavior to edge of screen
-- add quad tree / tile tree optimization
+- ability to save / load different parameter configurations
 
 ## Done
+- add repulsor behavior to edge of screen
 - ability to change individual parameters at runtime.
 - trails
 - fix transparency problem?
+- angle of visibility
 
 
 ## Challenges

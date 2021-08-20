@@ -110,7 +110,9 @@ class Bird:
             l2 = (aRepulsor.pos - self.pos).length_squared()
             r2 = aRepulsor.radius*aRepulsor.radius
             if l2 < r2:
-                force = (self.pos - aRepulsor.pos).normalize() * (1/l2) * params.repulsionStrength
+                r = (aRepulsor.pos - self.pos).length() / aRepulsor.radius
+
+                force = (self.pos - aRepulsor.pos).normalize() * (1/(r*r)) * params.repulsionStrength
                 delta += force
         # if delta.length() > 0:
         #     print(f"repulsion force is {delta.length()}")
