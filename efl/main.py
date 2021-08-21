@@ -29,9 +29,9 @@ def processEvents(world:World):
             elif event.key == K_d:
                 world.drawDiagnostics = not world.drawDiagnostics
             elif event.key == K_UP:
-                world.addBirds(10)
+                world.addBirds(BIRD_CHANGE_COUNT)
             elif event.key == K_DOWN:
-                world.removeBirds(10)
+                world.removeBirds(BIRD_CHANGE_COUNT)
             elif event.key == K_e:
                 world.edgeBehavior = 1 - world.edgeBehavior
             elif event.key == K_t:

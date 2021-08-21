@@ -2,7 +2,7 @@ from typing import Hashable
 from dataclasses import dataclass
 from pygame.math import Vector2
 
-CELL_SIZE = 50
+CELL_SIZE = 100
 
 class SparseList(list):
     negativeOffset = 0
@@ -88,8 +88,8 @@ class GridPartition:
         consider = []
         topLeft = self.posToCellIndex(center - Vector2(radius,radius))
         bottomRight = self.posToCellIndex(center + Vector2(radius,radius))
-        for x in range(topLeft[0],bottomRight[0]):
-            for y in range(topLeft[1],bottomRight[1]):
+        for x in range(topLeft[0],bottomRight[0]+1):
+            for y in range(topLeft[1],bottomRight[1]+1):
                 try:
                     cell = self.itemGrid[x][y]
                     consider.extend(cell.members.values())

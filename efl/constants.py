@@ -18,6 +18,8 @@ EDGE_MARGIN = 200
 #### Graphics Constants
 #####-----------------------------------------------------------------------------------------------------------------------------
 
+BIRD_CHANGE_COUNT = 100
+
 WORLD_WIDTH     = 1800
 WORLD_HEIGHT    = 900
 STARTING_BIRD_COUNT = 100
