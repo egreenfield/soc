@@ -1,6 +1,7 @@
 # Flocking
 
 ## Todo
+- limit max number of neighbors to consider
 - persist settings from run to run
 - add some randomness to motion of flocks
 - make screen box force grow the farther you are from the edge
