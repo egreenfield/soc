@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from grid_partition import GridPartition
 from diagnostics import Diagnostics
 from bird import Bird
 from pygame.math import Vector2
@@ -24,11 +25,8 @@ class Flock:
     partition:ListPartition
     world:any = None
     def __init__(self,world):
-        self.birds = []
-        self.repulsors = []
         self.world = world
-        self.partition = ListPartition()
-
+        self.clear()
         Diagnostics.setDiagnostic("bird count",lambda : f"{len(self.birds)} birds")
         pass
 
@@ -38,7 +36,7 @@ class Flock:
 
     def clearBirds(self):
         self.birds = []
-        self.partition = ListPartition()
+        self.partition = GridPartition()
 
     def killBird(self):
         self.birds.pop()

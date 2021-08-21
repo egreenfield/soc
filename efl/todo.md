@@ -1,14 +1,18 @@
 # Flocking
 
 ## Todo
-- make screen box force grow the farther you are from the edge
-- drag and delete repulsors
-- add quad tree / tile tree optimization
-- fix the 'too close' logic so it's not so jarring
+- persist settings from run to run
 - add some randomness to motion of flocks
+- make screen box force grow the farther you are from the edge
+- improve performance (quad tree performance and comparison performance)
+- delete repulsors
+- generators + death
+- fix the 'too close' logic so it's not so jarring
 - ability to save / load different parameter configurations
 
 ## Done
+- add quad tree / tile tree optimization
+- support negative numbers in sparse list
 - add repulsor behavior to edge of screen
 - ability to change individual parameters at runtime.
 - trails
