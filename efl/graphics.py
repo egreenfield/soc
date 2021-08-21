@@ -67,7 +67,7 @@ class Graphics:
         rad1 = Vector2(radius,0).rotate_rad(-angle-angleWidth/2)
         pygame.draw.line(self.debugSurface,color,center,center+rad1,2)
 
-    def drawDiagnostics(self,bird:Bird):
+    def drawDiagnosticOverlay(self,bird:Bird):
         angle = bird.velocity.as_polar()[1]/180 * math.pi
         if(bird.gravity != None):
             self.drawWedge(Color(230,230,255,200),bird.pos,params.birdVisibility,-angle,params.fov*math.pi/180)
@@ -81,7 +81,7 @@ class Graphics:
         heading = Vector2(bird.velocity)
         heading.scale_to_length(BIRD_LENGTH)
         if(self.world.drawDiagnostics):
-            self.drawDiagnostics(bird)
+            self.drawDiagnosticOverlay(bird)
         pygame.draw.line(self.birdSurface,(255,0,0),bird.pos,bird.pos+heading,2)
         if(self.world.drawTails):
             self.drawTails(bird)

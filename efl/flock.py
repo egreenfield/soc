@@ -5,6 +5,7 @@ from pygame.math import Vector2
 import random
 from constants import *
 from parameters import params
+from list_partition import ListPartition
 
 #####-----------------------------------------------------------------------------------------------------------------------------
 #### Flock
@@ -20,11 +21,14 @@ class Repulsor:
 class Flock:
     birds:list[Bird]
     repulsors:list[Repulsor]
+    partition:ListPartition
     world:any = None
     def __init__(self,world):
         self.birds = []
         self.repulsors = []
         self.world = world
+        self.partition = ListPartition()
+
         Diagnostics.setDiagnostic("bird count",lambda : f"{len(self.birds)} birds")
         pass
 
@@ -34,6 +38,7 @@ class Flock:
 
     def clearBirds(self):
         self.birds = []
+        self.partition = ListPartition()
 
     def killBird(self):
         self.birds.pop()
@@ -46,6 +51,7 @@ class Flock:
         speed=random.random() * (params.birdMaxSpeed-params.birdMinSpeed) + params.birdMinSpeed
         )
         self.birds.append(newBird)
+        self.partition.register(newBird)
 
     def addRepulsor(self,r):
         try:
@@ -70,30 +76,12 @@ class Flock:
         for aBird in self.birds:
             aBird.calculateNewPosition(delta)
         for aBird in self.birds:
-            aBird.updatePosition()    
+            newPos = aBird.updatePosition()   
+            self.partition.set(aBird,newPos)
 
-    def findBirdsNearby(self,pos:Vector2,maxDistance:float,minDistance:float=0):
-        nearbyBirds = []
-        min2 = minDistance * minDistance
-        max2 = maxDistance*maxDistance
-        for aBird in self.birds:
-            delta = aBird.pos - pos
-            d2 = delta.length_squared()
-            if(d2 > min2 and d2 < max2):
-                nearbyBirds.append(aBird)
-        return nearbyBirds
 
-    def findBirdsInView(self,pos:Vector2,dir:Vector2,fovDeg:float,maxDistance:float,minDistance:float=0):
-        nearbyBirds = []
-        min2 = minDistance * minDistance
-        max2 = maxDistance*maxDistance
-        for aBird in self.birds:
-            delta = aBird.pos - pos
-            d2 = delta.length_squared()
-            if(d2 <= min2 or d2 >= max2):
-                continue
-            a = dir.angle_to(delta)
-            if abs(a) > fovDeg/2:
-                continue
-            nearbyBirds.append(aBird)
-        return nearbyBirds
+    def findBirdsNearby(self,pos:Vector2,maxDistance:float,skip=None):
+        return self.partition.findInCircle(pos,maxDistance,skip)
+
+    def findBirdsInView(self,pos:Vector2,dir:Vector2,fovDeg:float,radius:float,skip=None):
+        return self.partition.findInCone(pos,dir,fovDeg,radius,skip)

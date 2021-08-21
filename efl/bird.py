@@ -1,3 +1,4 @@
+from id import ID
 from pygame.math import Vector2
 from constants import *
 from parameters import params
@@ -39,6 +40,10 @@ class Bird:
         self.speed = speed
         self.flock = flock
         self.tails = []
+        self.id = ID.allocate()
+
+    def __hash__(self) -> int:
+        return self.id
 
     def calculateNewPosition(self,timeDelta):
         timeDelta = timeDelta / 1000.0
@@ -51,9 +56,10 @@ class Bird:
         if(self.flock.world.edgeBehavior == EDGE_RETURN):
             velocity += self.stayInBox(self.flock.world.width,self.flock.world.height)
 
-        nearbyBirds = [] #self.flock.findBirdsInView(self.pos,self.velocity,params.fov,params.birdVisibility)
+        nearbyBirds = self.flock.findBirdsInView(self.pos,self.velocity,params.fov,params.birdVisibility,self)
+        #nearbyBirds = self.flock.findBirdsNearby(self.pos,params.birdVisibility,self)
         self.gravity = None
-        if(len(nearbyBirds) > 0):
+        if (len(nearbyBirds) > 0):
             # add forces attracting to nearby birds
             velocity += self.flyTowardsToNearbyBirds(nearbyBirds)
             # add forces repelling from birds that are too close
@@ -150,3 +156,4 @@ class Bird:
 
         self.pos = self.newPos
         self.newPos = None
+        return self.pos
