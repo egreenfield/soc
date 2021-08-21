@@ -92,13 +92,13 @@ class Bird:
         margin = EDGE_MARGIN
         delta = Vector2(0,0)
         if(self.pos.x < margin):
-            delta.x += b
+            delta.x += (margin - self.pos.x)*b
         elif self.pos.x > width-margin:
-            delta.x -= b
+            delta.x -= (self.pos.x-(width-margin))*b
         if self.pos.y < margin:
-            delta.y += b
+            delta.y += (margin - self.pos.y)*b
         elif self.pos.y > height-margin:
-            delta.y -= b
+            delta.y -= (self.pos.y-(height-margin))*b
         return delta
 
     def stayAway(self,birds):

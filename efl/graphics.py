@@ -86,7 +86,7 @@ class Graphics:
         if(self.world.drawTails):
             self.drawTails(bird)
     def drawRepulsor(self,rep:Repulsor):
-        pygame.draw.circle(self.repulsorSurface,Color(0,0,0,5),center=rep.pos,radius=rep.radius)
+        pygame.draw.circle(self.repulsorSurface,Color(0,0,0,3),center=rep.pos,radius=rep.radius)
         pygame.draw.circle(self.repulsorSurface,Color(0,0,0,150),center=rep.pos,radius=REPULSOR_DRAW_RADIUS)
 
     def drawDiagnostics(self):

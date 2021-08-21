@@ -20,14 +20,15 @@ EDGE_MARGIN = 200
 
 BIRD_CHANGE_COUNT = 100
 
-WORLD_WIDTH     = 1800
-WORLD_HEIGHT    = 900
+WORLD_WIDTH     = 2300
+WORLD_HEIGHT    = 1200
 STARTING_BIRD_COUNT = 100
-BIRD_LENGTH = 5
-TAIL_LENGTH = 10
+BIRD_LENGTH = 6
+TAIL_LENGTH = 13
 REPULSOR_DRAW_RADIUS = 5
 DEFAULT_REPULSOR_RADIUS = 150
 MOUSE_HIT_DISTANCE = 20
+DEFAULT_BOX_MAGNETISM = .05
 #####-----------------------------------------------------------------------------------------------------------------------------
 #### Dynamic Parameters
 #####-----------------------------------------------------------------------------------------------------------------------------

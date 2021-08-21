@@ -113,7 +113,7 @@ def initTools(world:World):
     Dynamic.add(name='birdMaxSpeed',code=K_m,key="m",min=20,max=1000,value=350)
     Dynamic.add(name='birdMinSpeed',code=K_n,key="n",min=20,max=1000,value=270)
     Dynamic.add(name='birdVisibility',code=K_v,key="v",min=1,max=200,value=80)
-    Dynamic.add(name='boxMagnetism',code=K_x,key="x",min=1,max=200,value=10)
+    Dynamic.add(name='boxMagnetism',code=K_x,key="x",min=0,max=1,value=DEFAULT_BOX_MAGNETISM)
     Dynamic.add(name='tooClose',code=K_c,key="c",min=1,max=100,value=20)
     Dynamic.add(name='individuality',code=K_i,key="i",min=1,max=100,value=5)
     Dynamic.add(name='gravitationalStrength',code=K_g,key="g",min=0,max=1,value=.05)
