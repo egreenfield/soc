@@ -51,7 +51,7 @@ class Bird:
         if(self.flock.world.edgeBehavior == EDGE_RETURN):
             velocity += self.stayInBox(self.flock.world.width,self.flock.world.height)
 
-        nearbyBirds = self.flock.findBirdsInView(self.pos,self.velocity,params.fov,params.birdVisibility)
+        nearbyBirds = [] #self.flock.findBirdsInView(self.pos,self.velocity,params.fov,params.birdVisibility)
         self.gravity = None
         if(len(nearbyBirds) > 0):
             # add forces attracting to nearby birds

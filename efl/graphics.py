@@ -1,3 +1,4 @@
+from diagnostics import Diagnostics
 from flock import Repulsor
 import pygame
 from constants import *
@@ -14,6 +15,7 @@ import math
 #####-----------------------------------------------------------------------------------------------------------------------------
 class Graphics:
     world:World
+    font:pygame.font = None
 
     def __init__(self,world:World):
         self.world = world
@@ -22,6 +24,7 @@ class Graphics:
         self.tailSurface = pygame.Surface((WORLD_WIDTH, WORLD_HEIGHT),flags=SRCALPHA,depth=32)
         self.debugSurface = pygame.Surface((WORLD_WIDTH, WORLD_HEIGHT),flags=SRCALPHA,depth=32)
         self.repulsorSurface = pygame.Surface((WORLD_WIDTH, WORLD_HEIGHT),flags=SRCALPHA,depth=32)
+        self.font = pygame.font.SysFont(None, 24)
 
     def draw(self):
         self.screen.fill((250,250,250))    
@@ -34,7 +37,7 @@ class Graphics:
         self.screen.blit(self.repulsorSurface,(0,0))
         self.screen.blit(self.tailSurface,(0,0))
         self.screen.blit(self.birdSurface,(0,0))
-
+        self.drawDiagnostics()
 
     def drawFlock(self):
         f = self.world.flock
@@ -85,3 +88,13 @@ class Graphics:
     def drawRepulsor(self,rep:Repulsor):
         pygame.draw.circle(self.repulsorSurface,Color(0,0,0,5),center=rep.pos,radius=rep.radius)
         pygame.draw.circle(self.repulsorSurface,Color(0,0,0,150),center=rep.pos,radius=REPULSOR_DRAW_RADIUS)
+
+    def drawDiagnostics(self):
+        txt = Diagnostics.getText()
+        lines = txt.split("\n")
+        y = 5
+        for aLine in lines:
+            img = self.font.render(aLine, True, (0,0,0))
+            rect:Rect = img.get_rect()
+            self.screen.blit(img, (5,y))
+            y += rect.height

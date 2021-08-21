@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from diagnostics import Diagnostics
 from bird import Bird
 from pygame.math import Vector2
 import random
@@ -24,6 +25,7 @@ class Flock:
         self.birds = []
         self.repulsors = []
         self.world = world
+        Diagnostics.setDiagnostic("bird count",lambda : f"{len(self.birds)} birds")
         pass
 
     def clear(self):

@@ -1,3 +1,4 @@
+from diagnostics import Diagnostics
 import pygame
 from pygame.locals import *
 from parameters import Dynamic
@@ -82,9 +83,14 @@ def runLoop(world,graphics):
     # 4) repeat until it's time to quit
     clock = pygame.time.Clock()
 
+    frameLengths = [0 for i in range(5)]
     while 1:
         if(world.runStyle == CONTINUOUS):
             delta = clock.tick(30)
+            frameLengths.append(delta)
+            frameLengths.pop(0)
+            fps = int(1000/(sum(frameLengths)/len(frameLengths)))
+            Diagnostics.setDiagnostic("fps",f"{fps} fps")
         elif world.runStyle == STEP:
             delta = 100
             world.runStyle = STOP
