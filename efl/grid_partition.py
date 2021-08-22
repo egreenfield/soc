@@ -4,41 +4,20 @@ from pygame.math import Vector2
 
 CELL_SIZE = 100
 
-class SparseList(list):
-    negativeOffset = 0
-
-    def __setitem__(self, index, value):
-        if isinstance(index,int):
-            index += self.negativeOffset
-            if(index < 0):
-                self[:0] = [None] * (-index)
-                self.negativeOffset += (-index)
-                index = 0
-            missing = index - len(self) + 1
-            if missing > 0:
-                self.extend([None] * missing)
-        list.__setitem__(self, index, value)
-    def __getitem__(self, index):
-        if isinstance(index,int):
-            index += self.negativeOffset
-        try: return list.__getitem__(self, index)
-        except IndexError: return None
-
-
 class Cell:
     members:dict
     def __init__(self):
         self.members = {}
 
 class GridPartition:
-    itemGrid:SparseList
+    itemGrid:dict
     itemToCellMap:dict[Cell]
 
     def __init__(self) -> None:
         self.clear()
 
     def clear(self):
-        self.itemGrid = SparseList()
+        self.itemGrid = {}
         self.itemToCellMap = {}
 
     def posToCellIndex(self,pos):
@@ -48,12 +27,14 @@ class GridPartition:
         col = None
         cell = None
 
-        col = self.itemGrid[index[0]]
-        if col == None:
-            self.itemGrid[index[0]] = col = SparseList()
+        try:
+            col = self.itemGrid[index[0]]
+        except:
+            self.itemGrid[index[0]] = col = {}
 
-        cell = col[index[1]]
-        if cell == None:
+        try:
+            cell = col[index[1]]
+        except:
             col[index[1]] = cell = Cell()
         return cell
 
@@ -114,17 +95,18 @@ class GridPartition:
 
     def findInCone(self,pos:Vector2,dir:Vector2,fovDeg:float,radius:float,skip=None):
         consider = self.buildConsiderList(pos,radius)
+        #consider = consider[0:6]
         nearby = []
         max2 = radius*radius
         for anItem in consider:
             if(anItem == skip):
                 continue
             delta = anItem.pos - pos
-            d2 = delta.length_squared()
+            d2 = delta.x*delta.x + delta.y*delta.y
             if(d2 >= max2):
                 continue
             a = dir.angle_to(delta)
-            if abs(a) > fovDeg/2:
+            if a > fovDeg/2 or a < -fovDeg/2:
                 continue
             nearby.append(anItem)
         return nearby

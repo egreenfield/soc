@@ -7,6 +7,7 @@ from world import World
 from graphics import Graphics    
 from toolbox import Tool, Toolbox
 from barier import BarrierTool
+from time import time
 
 #####-----------------------------------------------------------------------------------------------------------------------------
 #### USer Input/Events
@@ -83,8 +84,14 @@ def runLoop(world,graphics):
     # 4) repeat until it's time to quit
     clock = pygame.time.Clock()
 
+    startTime = time()
+
     frameLengths = [0 for i in range(5)]
     while 1:
+        if RUNNING_TIME > 0:
+            delta = (time() - startTime)
+            if delta > RUNNING_TIME:
+                return
         if(world.runStyle == CONTINUOUS):
             delta = clock.tick(30)
             frameLengths.append(delta)
@@ -142,3 +149,5 @@ def main():
 
 
 if __name__ == '__main__': main()
+
+
