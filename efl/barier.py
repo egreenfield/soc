@@ -32,6 +32,11 @@ class BarrierTool:
             self.selected = self.addBarrier(event)
         else:
             self.selected = self.world.flock.findBarrierAtPoint(Vector2(event.pos))
+        if keys[K_LCTRL] and self.selected != None:
+            self.world.flock.removeRepulsor(self.selected)
+            self.selected = None
+            
+
         self.startPoint = Vector2(event.pos)
         if(self.selected):
             self.startPos = self.selected.pos

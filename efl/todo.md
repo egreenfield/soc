@@ -2,16 +2,18 @@
 
 ## Todo
 - limit max number of neighbors to consider
+- implement DBScan (https://en.wikipedia.org/wiki/DBSCAN)
+- try two-teir tiles (one for gravity, one for too close neighbors)
 - persist settings from run to run
 - add some randomness to motion of flocks
 - make screen box force grow the farther you are from the edge
 - improve performance (quad tree performance and comparison performance)
-- delete repulsors
 - generators + death
 - fix the 'too close' logic so it's not so jarring
 - ability to save / load different parameter configurations
 
 ## Done
+- delete repulsors
 - add quad tree / tile tree optimization
 - support negative numbers in sparse list
 - add repulsor behavior to edge of screen

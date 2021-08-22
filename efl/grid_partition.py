@@ -96,6 +96,7 @@ class GridPartition:
                 except:
                     pass
         return consider
+#        return self.posToCell(center).members.keys()
 
     def findInCircle(self,center:Vector2,radius:float,skip=None):
         consider = self.buildConsiderList(center,radius)
