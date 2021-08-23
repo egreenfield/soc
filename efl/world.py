@@ -16,7 +16,6 @@ class World:
     drawTails:bool = False
     edgeBehavior:int = EDGE_DEFAULT_BEHAVIOR
     mouse:Repulsor
-    birdCount:int = STARTING_BIRD_COUNT
     
     def __init__(self,w:int,h:int):
         self.width = w
@@ -27,18 +26,12 @@ class World:
 
     def reset(self):
         self.flock.clear()
-        self.birdCount = STARTING_BIRD_COUNT
         self.resetBirds()
     def resetBirds(self):
         self.flock.clearBirds()
-        for i in range(self.birdCount):
-            self.flock.createRandomBird()
+        self.flock.setBirdCount(STARTING_BIRD_COUNT)
     def addBirds(self,count:int):
-        for i in range(count):
-            self.flock.createRandomBird()
-        self.birdCount += count
+        self.flock.setBirdCount(self.flock.birdCount+count)
     def removeBirds(self,count:int):
-        for i in range(count):
-            self.flock.killBird()
-        self.birdCount -= count
+        self.flock.setBirdCount(self.flock.birdCount-count)
 

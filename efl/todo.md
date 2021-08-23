@@ -1,6 +1,7 @@
 # Flocking
 
 ## Todo
+- openCL based processing: https://documen.tician.de/pyopencl/
 - limit max number of neighbors to consider
 - implement DBScan (https://en.wikipedia.org/wiki/DBSCAN)
 - try two-teir tiles (one for gravity, one for too close neighbors)

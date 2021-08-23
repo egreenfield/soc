@@ -27,6 +27,10 @@ def wrap(v,w,h):
 #### Bird
 #####-----------------------------------------------------------------------------------------------------------------------------
 
+I_PX = 0
+I_PY = 1
+I_VX = 2
+I_VY = 3
 class Bird:
     pos:Vector2
     newPos:Vector2
@@ -34,16 +38,27 @@ class Bird:
     flock:any
     tails:list[Vector2]
     wrapped:bool = False
-    def __init__(self,flock,pos,heading,speed):
+    index:int = 0
+    def __init__(self,flock,pos,heading,speed,index): 
         self.pos = pos
         self.velocity = Vector2(speed,0).rotate(heading)
-        self.speed = speed
         self.flock = flock
         self.tails = []
         self.id = ID.allocate()
+        self.index = index
+        self.data = self.flock.birdData[index]
 
+        self.copyToData()
+        
     def __hash__(self) -> int:
         return self.id
+
+    def copyToData(self):
+        d = self.data
+        d[I_PX] = self.pos.x
+        d[I_PY] = self.pos.y
+        d[I_VX] = self.velocity.x
+        d[I_VY] = self.velocity.y
 
     def calculateNewPosition(self,timeDelta):
         timeDelta = timeDelta / 1000.0

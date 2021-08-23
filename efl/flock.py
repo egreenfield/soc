@@ -7,6 +7,7 @@ import random
 from constants import *
 from parameters import params
 from list_partition import ListPartition
+import numpy as np
 
 #####-----------------------------------------------------------------------------------------------------------------------------
 #### Flock
@@ -24,6 +25,9 @@ class Flock:
     repulsors:list[Repulsor]
     partition:ListPartition
     world:any = None
+    birdCount:int = 0
+    birdData:np.array
+    nextBirdData:np.array
     def __init__(self,world):
         self.world = world
         self.clear()
@@ -36,17 +40,35 @@ class Flock:
 
     def clearBirds(self):
         self.birds = []
+        self.birdCount = 0
+        self.birdData = np.zeros((0,8),dtype=np.float64)
+        self.nextBirdData = np.zeros((0,8),dtype=np.float64)
         self.partition = GridPartition()
 
     def killBird(self):
         self.birds.pop()
 
-    def createRandomBird(self):
+    def setBirdCount(self,newCount:int):
+        delta = newCount - self.birdCount
+        if(newCount > self.birdCount):
+            newData = np.zeros((newCount, 8), dtype=np.float64)
+            self.birdData = np.vstack((self.birdData,newData))
+            self.nextBirdData = np.vstack((self.nextBirdData,np.zeros((newCount, 8), dtype=np.float64)))
+            for i in range(self.birdCount,newCount):
+                self.createRandomBirdAt(i)            
+        else:
+            self.birdData = self.birdData[:newCount]
+            self.birds = self.birds[:newCount]
+            #TODO remove from partition
+        self.birdCount = newCount
+
+        
+    def createRandomBirdAt(self,index):
         newBird = Bird(self,
         pos=Vector2(self.world.width*random.random(),self.world.height*random.random()),
         heading=random.random()*360,
-
-        speed=random.random() * (params.birdMaxSpeed-params.birdMinSpeed) + params.birdMinSpeed
+        speed=random.random() * (params.birdMaxSpeed-params.birdMinSpeed) + params.birdMinSpeed,
+        index=index 
         )
         self.birds.append(newBird)
         self.partition.register(newBird)
