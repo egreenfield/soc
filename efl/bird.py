@@ -31,10 +31,10 @@ I_PX = 0
 I_PY = 1
 I_VX = 2
 I_VY = 3
+I_NEIGHBORCOUNT = 4
 
 class Bird:
     newPos:Vector2
-    _gravity:Vector2 = None
     flock:any
     tails:list[Vector2]
     index:int = 0
@@ -58,6 +58,17 @@ class Bird:
         data = self.flock.birdData[self.index]
         data[I_VX] = value.x
         data[I_VY] = value.y
+
+    @property
+    def gravity(self):
+        data = self.flock.birdData[self.index]
+        return Vector2(data[I_NEIGHBORCOUNT],data[I_NEIGHBORCOUNT])
+
+    @gravity.setter
+    def gravity(self,value):
+        data = self.flock.birdData[self.index]
+        data[I_NEIGHBORCOUNT] = value.x
+        data[I_NEIGHBORCOUNT] = value.y
 
 
     def __init__(self,flock,pos,heading,speed,index): 
@@ -92,7 +103,7 @@ class Bird:
 
         nearbyBirds = self.flock.findBirdsInView(self.pos,self.velocity,params.fov,params.birdVisibility,self)
         #nearbyBirds = self.flock.findBirdsNearby(self.pos,params.birdVisibility,self)
-        self.gravity = None
+        self.gravity = Vector(0,0)
         if (len(nearbyBirds) > 0):
             # add forces attracting to nearby birds
             velocity += self.flyTowardsToNearbyBirds(nearbyBirds)

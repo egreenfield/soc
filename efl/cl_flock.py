@@ -1,6 +1,7 @@
 import numpy as np
 import pyopencl as cl
 import os
+from parameters import params
 
 
 class CLFlock:
@@ -23,7 +24,13 @@ class CLFlock:
         #print(f"********************************************************")
         #print(f"input:{self.inputData}")
         cl.enqueue_copy(self.queue,self.inputBuffer, self.inputData)
-        self.updateBirds(self.queue, (self.birdCount,1), None, self.inputBuffer, self.outputBuffer,timeDelta/1000.0,self.world.width,self.world.height)
+        self.updateBirds(self.queue, (self.birdCount,1), None, 
+            self.inputBuffer, self.outputBuffer,
+            timeDelta/1000.0,
+            self.birdCount, self.world.width,self.world.height,
+            params.birdVisibility,params.fov,
+            params.gravitationalStrength
+            )
         cl.enqueue_copy(self.queue, self.outputData, self.outputBuffer)
         #print(f"ouput:{self.outputData}")
 
@@ -37,7 +44,13 @@ class CLFlock:
         prg = cl.Program(self.ctx, kernelsource).build()
         self.updateBirds = prg.updateBirds  # Use this Kernel object for repeated calls
         # input data, output data, width, height
-        self.updateBirds.set_scalar_arg_dtypes([None, None, np.float32, np.uint32, np.uint32])
+        self.updateBirds.set_scalar_arg_dtypes([
+            None, None, 
+            np.float32, 
+            np.uint32, np.uint32, np.uint32,
+            np.float32, np.float32,
+            np.float32
+        ])
         self.clInitilized = True
 
     def setBuffers(self,inputData,outputData):

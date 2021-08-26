@@ -14,7 +14,7 @@ import numpy as np
 #### Flock
 #####-----------------------------------------------------------------------------------------------------------------------------
 
-BIRD_DATUM_COUNT = 4
+BIRD_DATUM_COUNT = 8
 
 @dataclass
 class Repulsor:
