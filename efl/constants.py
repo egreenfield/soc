@@ -13,6 +13,8 @@ EDGE_WRAP = 0
 EDGE_RETURN = 1
 EDGE_DEFAULT_BEHAVIOR = EDGE_RETURN
 
+TARGET_FRAME_RATE = 30
+
 EDGE_MARGIN = 200
 #####-----------------------------------------------------------------------------------------------------------------------------
 #### Graphics Constants
@@ -21,7 +23,7 @@ EDGE_MARGIN = 200
 
 RUNNING_TIME = 0
 STARTING_BIRD_COUNT = 200
-BIRD_CHANGE_COUNT = 100
+BIRD_CHANGE_COUNT = 100 
 
 # uncomment for profiling setup
 #RUNNING_TIME = 15

@@ -92,16 +92,16 @@ def runLoop(world,graphics):
             delta = (time() - startTime)
             if delta > RUNNING_TIME:
                 return
-        if(world.runStyle == CONTINUOUS):
-            delta = clock.tick(30)
-            frameLengths.append(delta)
-            frameLengths.pop(0)
-            fps = int(1000/(sum(frameLengths)/len(frameLengths)))
-            Diagnostics.setDiagnostic("fps",f"{fps} fps")
-        elif world.runStyle == STEP:
+        delta = clock.tick(TARGET_FRAME_RATE)
+        frameLengths.append(delta)
+        frameLengths.pop(0)
+        fps = int(1000/(sum(frameLengths)/len(frameLengths)))
+        Diagnostics.setDiagnostic("fps",f"{fps} fps")
+
+        if world.runStyle == STEP:
             delta = 100
             world.runStyle = STOP
-        else:
+        elif world.runStyle == STOP:
             delta = 0
         shouldQuit = processEvents(world)
         if(shouldQuit):
@@ -141,7 +141,7 @@ def main():
 
     world.reset()
 
-    draw(world,graphics)
+#    draw(world,graphics)
 
     # Event loop
     runLoop(world,graphics)

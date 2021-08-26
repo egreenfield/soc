@@ -1,3 +1,4 @@
+from cl_flock import CLFlock
 from dataclasses import dataclass
 from grid_partition import GridPartition
 from diagnostics import Diagnostics
@@ -12,6 +13,8 @@ import numpy as np
 #####-----------------------------------------------------------------------------------------------------------------------------
 #### Flock
 #####-----------------------------------------------------------------------------------------------------------------------------
+
+BIRD_DATUM_COUNT = 4
 
 @dataclass
 class Repulsor:
@@ -28,8 +31,10 @@ class Flock:
     birdCount:int = 0
     birdData:np.array
     nextBirdData:np.array
+    clRenderer:CLFlock = None
     def __init__(self,world):
         self.world = world
+        self.clRenderer = CLFlock(world)        
         self.clear()
         Diagnostics.setDiagnostic("bird count",lambda : f"{len(self.birds)} birds")
         pass
@@ -41,8 +46,8 @@ class Flock:
     def clearBirds(self):
         self.birds = []
         self.birdCount = 0
-        self.birdData = np.zeros((0,8),dtype=np.float64)
-        self.nextBirdData = np.zeros((0,8),dtype=np.float64)
+        self.birdData = np.zeros((0,BIRD_DATUM_COUNT),dtype=np.float32)
+        self.nextBirdData = np.zeros((0,BIRD_DATUM_COUNT),dtype=np.float32)
         self.partition = GridPartition()
 
     def killBird(self):
@@ -51,16 +56,18 @@ class Flock:
     def setBirdCount(self,newCount:int):
         delta = newCount - self.birdCount
         if(newCount > self.birdCount):
-            newData = np.zeros((newCount, 8), dtype=np.float64)
+            newData = np.zeros((newCount, BIRD_DATUM_COUNT), dtype=np.float32)
             self.birdData = np.vstack((self.birdData,newData))
-            self.nextBirdData = np.vstack((self.nextBirdData,np.zeros((newCount, 8), dtype=np.float64)))
+            self.nextBirdData = np.vstack((self.nextBirdData,np.zeros((newCount, BIRD_DATUM_COUNT), dtype=np.float32)))
             for i in range(self.birdCount,newCount):
                 self.createRandomBirdAt(i)            
         else:
             self.birdData = self.birdData[:newCount]
+            self.nextBirdData = self.birdData[:newCount]
             self.birds = self.birds[:newCount]
             #TODO remove from partition
         self.birdCount = newCount
+        self.clRenderer.setBufferSize(self.birdCount,self.birdData)
 
         
     def createRandomBirdAt(self,index):
@@ -93,11 +100,19 @@ class Flock:
     def update(self,delta):
         if delta == 0: 
             return
-        for aBird in self.birds:
-            aBird.calculateNewPosition(delta)
-        for aBird in self.birds:
-            newPos = aBird.updatePosition()   
-            self.partition.set(aBird,newPos)
+        # for aBird in self.birds:
+        #     aBird.calculateNewPosition(delta)
+
+        self.clRenderer.setBuffers(self.birdData,self.nextBirdData)
+        self.clRenderer.runUpdate(delta)
+        tmp = self.birdData
+        self.birdData = self.nextBirdData
+        self.nextBirdData = self.birdData
+
+        # for aBird in self.birds:
+        #     newPos = aBird.updatePosition()   
+        #     self.partition.set(aBird,newPos)
+
 
 
     def findBirdsNearby(self,pos:Vector2,maxDistance:float,skip=None):

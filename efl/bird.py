@@ -31,24 +31,43 @@ I_PX = 0
 I_PY = 1
 I_VX = 2
 I_VY = 3
+
 class Bird:
-    pos:Vector2
     newPos:Vector2
-    gravity:Vector2 = None
+    _gravity:Vector2 = None
     flock:any
     tails:list[Vector2]
-    wrapped:bool = False
     index:int = 0
+    @property
+    def pos(self):
+        data = self.flock.birdData[self.index]
+        return Vector2(data[I_PX],data[I_PY])
+    @pos.setter
+    def pos(self,value):
+        data = self.flock.birdData[self.index]
+        data[I_PX] = value.x
+        data[I_PY] = value.y
+
+    
+    @property
+    def velocity(self):
+        data = self.flock.birdData[self.index]
+        return Vector2(data[I_VX],data[I_VY])
+    @velocity.setter
+    def velocity(self,value):
+        data = self.flock.birdData[self.index]
+        data[I_VX] = value.x
+        data[I_VY] = value.y
+
+
     def __init__(self,flock,pos,heading,speed,index): 
-        self.pos = pos
-        self.velocity = Vector2(speed,0).rotate(heading)
         self.flock = flock
+        self.index = index
         self.tails = []
         self.id = ID.allocate()
-        self.index = index
-        self.data = self.flock.birdData[index]
+        self.pos = pos
+        self.velocity = Vector2(speed,0).rotate(heading)
 
-        self.copyToData()
         
     def __hash__(self) -> int:
         return self.id
@@ -172,3 +191,57 @@ class Bird:
         self.pos = self.newPos
         self.newPos = None
         return self.pos
+
+    clInitilized = False
+    clBuffersInitiazed = False
+    runCount = 0
+
+    @classmethod
+    def runUpdate(self):
+        if(self.runCount >= 2):
+            return
+        self.runCount += 1
+        if(self.initilized == False):
+            self.initCL()
+
+        mf = cl.mem_flags
+        for i in range(0,30):
+            self.a_np[i][0] = self.a_np[i][1] = self.a_np[i][2] = i * (self.runCount+1)
+        print(self.a_np)
+
+        cl.enqueue_copy(self.queue,self.a_g, self.a_np)
+
+        self.updateBirds(self.queue, (30,1), None, self.a_g, self.res_g)
+
+        cl.enqueue_copy(self.queue, self.res_np, self.res_g)
+
+        print(self.res_np)
+
+    @classmethod
+    def initCL(self):
+        os.environ["PYOPENCL_CTX"]=":1"
+        self.initilized = True
+        self.ctx = cl.create_some_context()
+        self.queue = cl.CommandQueue(self.ctx)
+        with open('./birdUpdate.cl', 'r') as f:
+            kernelsource = f.read()
+        prg = cl.Program(self.ctx, kernelsource).build()
+        self.updateBirds = prg.updateBirds  # Use this Kernel object for repeated calls
+
+        self.initBuffers()
+
+    @classmethod
+    def initBuffers(self):
+        mf = cl.mem_flags
+        self.a_np = np.ones((30,3),dtype=np.float32) #np.random.rand(100).astype(np.float32)
+        self.a_g = cl.Buffer(self.ctx, mf.READ_ONLY, self.a_np.nbytes)
+        self.birdDataBuffer = cl.Buffer(self.ctx, mf.READ_ONLY, self.a_np.nbytes)
+        self.res_np = np.empty_like(self.a_np)
+        self.res_g = cl.Buffer(self.ctx, mf.WRITE_ONLY, self.a_np.nbytes)
+        clBuffersInitiazed = true
+
+    @classmethod
+    def clearBuffers(self):
+        self.birdDataBuffer = None
+        self.birdDataOutputBuffer = None
+        clBuffersInitiazed = False
