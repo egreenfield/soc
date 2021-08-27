@@ -2,7 +2,7 @@ import numpy as np
 import pyopencl as cl
 import os
 from parameters import params
-
+from constants import *
 
 class CLFlock:
 
@@ -31,7 +31,8 @@ class CLFlock:
             params.birdVisibility,params.fov,
             params.gravitationalStrength,
             params.tooClose,
-            params.individuality
+            params.individuality,
+            0 if (self.world.edgeBehavior == EDGE_WRAP) else params.boxMagnetism
             )
         cl.enqueue_copy(self.queue, self.outputData, self.outputBuffer)
         #print(f"ouput:{self.outputData}")
@@ -52,6 +53,7 @@ class CLFlock:
             np.uint32, np.uint32, np.uint32,
             np.float32, np.float32,
             np.float32, np.float32,
+            np.float32,
             np.float32
         ])
         self.clInitilized = True

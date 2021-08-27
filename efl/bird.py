@@ -62,13 +62,13 @@ class Bird:
     @property
     def gravity(self):
         data = self.flock.birdData[self.index]
-        return Vector2(data[I_NEIGHBORCOUNT],data[I_NEIGHBORCOUNT])
+        return Vector2(data[I_NEIGHBORCOUNT],data[I_NEIGHBORCOUNT+1])
 
     @gravity.setter
     def gravity(self,value):
         data = self.flock.birdData[self.index]
         data[I_NEIGHBORCOUNT] = value.x
-        data[I_NEIGHBORCOUNT] = value.y
+        data[I_NEIGHBORCOUNT+1] = value.y
 
 
     def __init__(self,flock,pos,heading,speed,index): 
@@ -103,7 +103,7 @@ class Bird:
 
         nearbyBirds = self.flock.findBirdsInView(self.pos,self.velocity,params.fov,params.birdVisibility,self)
         #nearbyBirds = self.flock.findBirdsNearby(self.pos,params.birdVisibility,self)
-        self.gravity = Vector(0,0)
+        self.gravity = Vector2(0,0)
         if (len(nearbyBirds) > 0):
             # add forces attracting to nearby birds
             velocity += self.flyTowardsToNearbyBirds(nearbyBirds)
@@ -202,57 +202,3 @@ class Bird:
         self.pos = self.newPos
         self.newPos = None
         return self.pos
-
-    clInitilized = False
-    clBuffersInitiazed = False
-    runCount = 0
-
-    @classmethod
-    def runUpdate(self):
-        if(self.runCount >= 2):
-            return
-        self.runCount += 1
-        if(self.initilized == False):
-            self.initCL()
-
-        mf = cl.mem_flags
-        for i in range(0,30):
-            self.a_np[i][0] = self.a_np[i][1] = self.a_np[i][2] = i * (self.runCount+1)
-        print(self.a_np)
-
-        cl.enqueue_copy(self.queue,self.a_g, self.a_np)
-
-        self.updateBirds(self.queue, (30,1), None, self.a_g, self.res_g)
-
-        cl.enqueue_copy(self.queue, self.res_np, self.res_g)
-
-        print(self.res_np)
-
-    @classmethod
-    def initCL(self):
-        os.environ["PYOPENCL_CTX"]=":1"
-        self.initilized = True
-        self.ctx = cl.create_some_context()
-        self.queue = cl.CommandQueue(self.ctx)
-        with open('./birdUpdate.cl', 'r') as f:
-            kernelsource = f.read()
-        prg = cl.Program(self.ctx, kernelsource).build()
-        self.updateBirds = prg.updateBirds  # Use this Kernel object for repeated calls
-
-        self.initBuffers()
-
-    @classmethod
-    def initBuffers(self):
-        mf = cl.mem_flags
-        self.a_np = np.ones((30,3),dtype=np.float32) #np.random.rand(100).astype(np.float32)
-        self.a_g = cl.Buffer(self.ctx, mf.READ_ONLY, self.a_np.nbytes)
-        self.birdDataBuffer = cl.Buffer(self.ctx, mf.READ_ONLY, self.a_np.nbytes)
-        self.res_np = np.empty_like(self.a_np)
-        self.res_g = cl.Buffer(self.ctx, mf.WRITE_ONLY, self.a_np.nbytes)
-        clBuffersInitiazed = true
-
-    @classmethod
-    def clearBuffers(self):
-        self.birdDataBuffer = None
-        self.birdDataOutputBuffer = None
-        clBuffersInitiazed = False

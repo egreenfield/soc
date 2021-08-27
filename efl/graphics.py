@@ -59,24 +59,23 @@ class Graphics:
         if(len(bird.tails)-start > 2):
             pygame.draw.lines(self.tailSurface,(0,0,150,50),False,bird.tails[start:])
     
-    def drawWedge(self,color,center,radius,angle,angleWidth):
+    def drawWedge(self,color,center,radius,angle,angleWidth,weight):
         rc=pygame.Rect(center[0]-radius,center[1]-radius,radius*2,radius*2)
-        pygame.draw.arc(self.debugSurface,color,rc,angle-angleWidth/2,angle+angleWidth/2,4)
+        pygame.draw.arc(self.debugSurface,color,rc,angle-angleWidth/2,angle+angleWidth/2,weight)
         rad1 = Vector2(radius,0).rotate_rad(-angle+angleWidth/2)
-        pygame.draw.line(self.debugSurface,color,center,center+rad1,4)
+        pygame.draw.line(self.debugSurface,color,center,center+rad1,weight)
         rad1 = Vector2(radius,0).rotate_rad(-angle-angleWidth/2)
-        pygame.draw.line(self.debugSurface,color,center,center+rad1,4)
+        pygame.draw.line(self.debugSurface,color,center,center+rad1,weight)
 
     def drawDiagnosticOverlay(self,bird:Bird):
         angle = bird.velocity.as_polar()[1]/180 * math.pi
         #print(bird.gravity)
         if(bird.gravity.length_squared() > 0):
-            self.drawWedge(Color(130,130,255,230),bird.pos,params.birdVisibility,-angle,params.fov*math.pi/180)
+            self.drawWedge(Color(130,130,255,100),bird.pos,params.birdVisibility,-angle,params.fov*math.pi/180,2)
 #            pygame.draw.circle(self.debugSurface,Color(230,230,255,150),center=bird.pos,radius=params.birdVisibility)
-            # if(not bird.didWrap):
-            #     pygame.draw.line(self.birdSurface,(0,0,255),bird.pos,bird.gravity,1)
+            pygame.draw.line(self.birdSurface,(0,0,255,200),bird.pos,bird.gravity,2)
         else:
-            self.drawWedge(Color(255,130,130,230),bird.pos,params.birdVisibility,-angle,params.fov*math.pi/180)
+            self.drawWedge(Color(255,130,130,100),bird.pos,params.birdVisibility,-angle,params.fov*math.pi/180,2)
 
     def drawBird(self,bird:Bird):
         heading = Vector2(bird.velocity)
