@@ -73,7 +73,7 @@
 
         if (nearbyCount) {
             gravity /= nearbyCount;
-            forces += (gravity - bird.xy) / gravitationalStrength;
+            forces += (gravity - bird.xy) * gravitationalStrength;
             headingChange /= nearbyCount;
             forces += (headingChange - bird.zw) / individuality;
 
@@ -82,7 +82,7 @@
 
 
         // apply forces
-//        bird.zw += forces;
+        bird.zw += forces;
 
         bird.zw = limitSpeed(bird.zw);
         
