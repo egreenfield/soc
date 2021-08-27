@@ -30,7 +30,8 @@
         const float elapsedSeconds,
         const int birdCount, const int worldWidth,const int worldHeight,
         const float visibility,const float fov,
-        const float gravitationalStrength
+        const float gravitationalStrength, const float tooClose,
+        const float individuality
     )
     {
         
@@ -41,8 +42,11 @@
 
         float2 gravity = (0,0);
         float2 forces = (0,0);
-
+        float2 headingChange = (0,0);
+        float2 socialDistance = (0,0);
+        
         float max2 = visibility*visibility;
+        float tc2 = tooClose*tooClose;
         int nearbyCount = 0;
         for (int i=0;i<birdCount;i++) {
              if (i == birdIndex)
@@ -50,19 +54,35 @@
             BirdType friend = birds[i];
             float d2 = (friend.x - bird.x)*(friend.x - bird.x) +
                             (friend.y - bird.y)*(friend.y - bird.y);
+            
+            // visible
             if (d2 < max2) {
                 nearbyCount++;
+                // add gravity
                 gravity += friend.xy;
+                // add heading
+                headingChange += friend.zw;
+
+                // social distancing
+                if (d2 < tc2) {
+                    socialDistance -= (friend.xy - bird.xy);
+                }            
+            
             }
         }
 
         if (nearbyCount) {
             gravity /= nearbyCount;
-            forces += (gravity - bird.zw) / gravitationalStrength;
+            forces += (gravity - bird.xy) / gravitationalStrength;
+            headingChange /= nearbyCount;
+            forces += (headingChange - bird.zw) / individuality;
+
         }
+        forces += socialDistance;
+
 
         // apply forces
-        //bird.zw += forces;
+//        bird.zw += forces;
 
         bird.zw = limitSpeed(bird.zw);
         

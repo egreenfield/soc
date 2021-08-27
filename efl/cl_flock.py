@@ -29,7 +29,9 @@ class CLFlock:
             timeDelta/1000.0,
             self.birdCount, self.world.width,self.world.height,
             params.birdVisibility,params.fov,
-            params.gravitationalStrength
+            params.gravitationalStrength,
+            params.tooClose,
+            params.individuality
             )
         cl.enqueue_copy(self.queue, self.outputData, self.outputBuffer)
         #print(f"ouput:{self.outputData}")
@@ -48,6 +50,7 @@ class CLFlock:
             None, None, 
             np.float32, 
             np.uint32, np.uint32, np.uint32,
+            np.float32, np.float32,
             np.float32, np.float32,
             np.float32
         ])
