@@ -38,6 +38,7 @@ class Bird:
     flock:any
     tails:list[Vector2]
     index:int = 0
+
     @property
     def pos(self):
         data = self.flock.birdData[self.index]

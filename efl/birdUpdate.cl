@@ -5,6 +5,8 @@
 #define kVy 3
 #define kBirdSize 4
 #define BirdType float8
+#define ObjectType float8
+#define kDefaultRepulsorRadius 150
 
 float2 wrap(float2 pos,const int worldWidth,const int worldHeight,int* didWrap);
 float2 limitSpeed(const float2 v);
@@ -47,6 +49,37 @@ float2 stayInBox(float2 pos,
         delta.xy-= (pos.y-(worldHeight-margin))*b;
     return delta;
 }
+    // def stayAwayFromRepulsors(self,repulsors):
+    //     delta = Vector2(0,0)
+    //     tooClose2 = params.tooClose * params.tooClose
+    //     for aRepulsor in repulsors:
+    //         l2 = (aRepulsor.pos - self.pos).length_squared()
+    //         r2 = aRepulsor.radius*aRepulsor.radius
+    //         if l2 < r2:
+    //             r = (aRepulsor.pos - self.pos).length() / aRepulsor.radius
+
+    //             force = (self.pos - aRepulsor.pos).normalize() * (1/(r*r)) * params.repulsionStrength
+    //             delta += force
+    //     # if delta.length() > 0:
+    //     #     print(f"repulsion force is {delta.length()}")
+    //     return delta
+
+float2 stayAwayFromRepulsors(float8 bird,__global ObjectType *objectData,const int objectCount,const float repulsionStrength) {
+    float2 totalForce = (0,0);
+    for(int i=0;i<objectCount;i++) {
+        ObjectType o = objectData[i];
+        float2 dv = bird.xy - o.xy;
+        float l2 = (dv.x*dv.x)+(dv.y*dv.y);
+        float r2 = kDefaultRepulsorRadius*kDefaultRepulsorRadius;
+        if (l2 < r2) {
+            float l = sqrt(l2);
+            float r = l / kDefaultRepulsorRadius;
+            float2 forceV = (dv / l) * (1/(r*r)) * repulsionStrength;
+            totalForce += forceV;
+        }
+    }
+    return totalForce;
+}
 
 float2 wrap(float2 pos,const int worldWidth,const int worldHeight,int* didWrap) {
     // wrap
@@ -68,12 +101,15 @@ float2 wrap(float2 pos,const int worldWidth,const int worldHeight,int* didWrap) 
 
 __kernel void updateBirds(
     __global const BirdType *birds, __global BirdType *outputData, 
+    __global ObjectType *objectData, 
     const float elapsedSeconds,
-    const int birdCount, const int worldWidth,const int worldHeight,
+    const int birdCount, const int objectCount,
+    const int worldWidth,const int worldHeight,
     const float visibility,const float fov,
     const float gravitationalStrength, const float tooClose,
     const float individuality,
-    const float boxMagnetism
+    const float boxMagnetism,
+    const float repulsionStrength
 )
 {
     
@@ -123,9 +159,9 @@ __kernel void updateBirds(
         forces += (gravity - bird.xy) * gravitationalStrength;
         headingChange /= nearbyCount;
         forces += (headingChange - bird.zw) / individuality;
-
     }
     forces += socialDistance;
+    forces += stayAwayFromRepulsors(bird,objectData,objectCount,repulsionStrength);
 
 
     // apply forces

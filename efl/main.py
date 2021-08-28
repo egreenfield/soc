@@ -37,14 +37,6 @@ def processEvents(world:World):
                 world.edgeBehavior = 1 - world.edgeBehavior
             elif event.key == K_t:
                 world.drawTails = not world.drawTails
-        if event.type == MOUSEBUTTONDOWN and event.button == 3:
-            world.mouse.pos = event.pos
-            world.flock.addRepulsor(world.mouse)
-        if event.type == MOUSEBUTTONUP and event.button == 3:
-            world.mouse.pos = event.pos
-            world.flock.removeRepulsor(world.mouse)
-        if event.type == MOUSEMOTION:
-            world.mouse.pos = event.pos
 
         Toolbox.handleEvent(event)
 
@@ -122,7 +114,7 @@ def initTools(world:World):
     Dynamic.add(name='birdVisibility',code=K_v,key="v",min=1,max=200,value=80)
     Dynamic.add(name='boxMagnetism',code=K_x,key="x",min=0,max=1,value=DEFAULT_BOX_MAGNETISM)
     Dynamic.add(name='tooClose',code=K_c,key="c",min=1,max=100,value=20)
-    Dynamic.add(name='individuality',code=K_i,key="i",min=1,max=100,value=5)
+    Dynamic.add(name='individuality',code=K_i,key="i",min=1,max=100,value=DEFAULT_INDIVIDUALITY)
     Dynamic.add(name='gravitationalStrength',code=K_g,key="g",min=0,max=1,value=.05)
     Dynamic.add(name='fov',code=K_f,key="f",min=0,max=360,value=120)
     Dynamic.add(name='repulsionStrength',code=K_q,key="q",min=1,max=10,value=3)

@@ -20,8 +20,7 @@ class BarrierTool:
         pass
 
     def addBarrier(self,event):
-        r = Repulsor(event.pos)
-        self.world.flock.addRepulsor(r)
+        r = self.world.flock.addRepulsor(event.pos)
         print(f"added barrier at {event.pos}")
         return r
 

@@ -15,14 +15,12 @@ class World:
     drawDiagnostics:bool = False
     drawTails:bool = False
     edgeBehavior:int = EDGE_DEFAULT_BEHAVIOR
-    mouse:Repulsor
     
     def __init__(self,w:int,h:int):
         self.width = w
         self.height = h
         self.flock = Flock(self)
         self.runStyle = STARTING_RUNSTYLE
-        self.mouse = Repulsor(pos=Vector2())
 
     def reset(self):
         self.flock.clear()
