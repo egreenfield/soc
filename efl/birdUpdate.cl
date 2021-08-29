@@ -131,21 +131,29 @@ __kernel void updateBirds(
             if (i == birdIndex)
             continue;
         BirdType friend = birds[i];
-        float d2 = (friend.x - bird.x)*(friend.x - bird.x) +
-                        (friend.y - bird.y)*(friend.y - bird.y);
+        float2 vFromBirdToFriend = friend.xy - bird.xy;
+        float d2 = (vFromBirdToFriend.x)*(vFromBirdToFriend.x) +
+                        (vFromBirdToFriend.y)*(vFromBirdToFriend.y);
         
         // visible
         if (d2 < max2) {
-            nearbyCount++;
-            // add gravity
-            gravity += friend.xy;
-            // add heading
-            headingChange += friend.zw;
 
-            // social distancing
-            if (d2 < tc2) {
-                socialDistance -= (friend.xy - bird.xy);
-            }            
+            float lookAngle = atan2(bird.w,bird.z);
+            float friendAngle = atan2(vFromBirdToFriend.x,vFromBirdToFriend.y);
+//            printf("look: %f, flook: %f, fov: %f,\n",lookAngle,friendAngle,fov);
+
+            if(fabs(friendAngle - lookAngle) <= fov/2) {
+                nearbyCount++;
+                // add gravity
+                gravity += friend.xy;
+                // add heading
+                headingChange += friend.zw;
+
+                // social distancing
+                if (d2 < tc2) {
+                    socialDistance -= (friend.xy - bird.xy);
+                }            
+            }
         
         }
     }

@@ -3,6 +3,7 @@ import pyopencl as cl
 import os
 from parameters import params
 from constants import *
+import math
 
 class CLFlock:
 
@@ -36,7 +37,7 @@ class CLFlock:
             timeDelta/1000.0,
             self.birdCount, self.objectCount,
             self.world.width,self.world.height,
-            params.birdVisibility,params.fov,
+            params.birdVisibility,params.fov * math.pi/180.,
             params.gravitationalStrength,
             params.tooClose,
             params.individuality,

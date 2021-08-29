@@ -1,7 +1,6 @@
 # Flocking
 
 ## Todo
-- port FOV to OpenCL
 - fix the 'too close' logic so it's not so jarring
 - add some randomness to motion of flocks
 - persist settings from run to run
@@ -11,6 +10,7 @@
 - ability to save / load different parameter configurations
 
 ## Done
+- port FOV to OpenCL
 - make screen box force grow the farther you are from the edge
 - limit max number of neighbors to consider
 - openCL based processing: https://documen.tician.de/pyopencl/
