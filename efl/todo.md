@@ -1,19 +1,19 @@
 # Flocking
 
 ## Todo
-- openCL based processing: https://documen.tician.de/pyopencl/
-- limit max number of neighbors to consider
-- implement DBScan (https://en.wikipedia.org/wiki/DBSCAN)
-- try two-teir tiles (one for gravity, one for too close neighbors)
-- persist settings from run to run
-- add some randomness to motion of flocks
-- make screen box force grow the farther you are from the edge
-- improve performance (quad tree performance and comparison performance)
-- generators + death
+- port FOV to OpenCL
 - fix the 'too close' logic so it's not so jarring
+- add some randomness to motion of flocks
+- persist settings from run to run
+- generators + death
+- bounce surfaces
+- repulsor walls.
 - ability to save / load different parameter configurations
 
 ## Done
+- make screen box force grow the farther you are from the edge
+- limit max number of neighbors to consider
+- openCL based processing: https://documen.tician.de/pyopencl/
 - delete repulsors
 - add quad tree / tile tree optimization
 - support negative numbers in sparse list
@@ -23,6 +23,11 @@
 - fix transparency problem?
 - angle of visibility
 
+
+## Later Ideas
+- implement DBScan (https://en.wikipedia.org/wiki/DBSCAN)
+- try two-teir tiles (one for gravity, one for too close neighbors)
+- improve performance (quad tree performance and comparison performance)
 
 ## Challenges
 
