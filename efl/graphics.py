@@ -21,21 +21,27 @@ class Graphics:
         self.world = world
         self.screen = pygame.display.set_mode((WORLD_WIDTH, WORLD_HEIGHT))
         self.birdSurface = pygame.Surface((WORLD_WIDTH, WORLD_HEIGHT),flags=SRCALPHA,depth=32)
-        self.tailSurface = pygame.Surface((WORLD_WIDTH, WORLD_HEIGHT),flags=SRCALPHA,depth=32)
-        self.debugSurface = pygame.Surface((WORLD_WIDTH, WORLD_HEIGHT),flags=SRCALPHA,depth=32)
-        self.repulsorSurface = pygame.Surface((WORLD_WIDTH, WORLD_HEIGHT),flags=SRCALPHA,depth=32)
+        self.tailSurface = self.birdSurface # pygame.Surface((WORLD_WIDTH, WORLD_HEIGHT),flags=SRCALPHA,depth=32)
+        self.debugSurface = self.birdSurface #pygame.Surface((WORLD_WIDTH, WORLD_HEIGHT),flags=SRCALPHA,depth=32)
+        self.repulsorSurface = self.birdSurface # pygame.Surface((WORLD_WIDTH, WORLD_HEIGHT),flags=SRCALPHA,depth=32)
         self.font = pygame.font.SysFont(None, 24)
 
     def draw(self):
         self.screen.fill((250,250,250))    
         self.birdSurface.fill((0,0,0,0))    
-        self.tailSurface.fill((0,0,0,0))    
-        self.repulsorSurface.fill((0,0,0,0))    
-        self.debugSurface.fill((0,0,0,0))    
+        if(self.world.drawTails):
+            self.tailSurface.fill((0,0,0,0))    
+        if(len(self.world.flock.repulsors)):
+            self.repulsorSurface.fill((0,0,0,0))    
+        if(self.world.drawDiagnostics):
+            self.debugSurface.fill((0,0,0,0))    
         self.drawFlock()
-        self.screen.blit(self.debugSurface,(0,0))
-        self.screen.blit(self.repulsorSurface,(0,0))
-        self.screen.blit(self.tailSurface,(0,0))
+        if(self.world.drawDiagnostics):
+            self.screen.blit(self.debugSurface,(0,0))
+        if(len(self.world.flock.repulsors)):
+            self.screen.blit(self.repulsorSurface,(0,0))
+        if (self.world.drawTails):
+            self.screen.blit(self.tailSurface,(0,0))
         self.screen.blit(self.birdSurface,(0,0))
         self.drawDiagnostics()
 
@@ -79,12 +85,22 @@ class Graphics:
 
     def drawBird(self,bird:Bird):
         heading = Vector2(bird.velocity)
+        p = bird.pos
         heading.scale_to_length(BIRD_LENGTH)
         if(self.world.drawDiagnostics):
             self.drawDiagnosticOverlay(bird)
-        pygame.draw.line(self.birdSurface,(255,0,0),bird.pos,bird.pos+heading,2)
+        pygame.draw.line(self.birdSurface,(255,0,0),p,p+heading,2)
         if(self.world.drawTails):
             self.drawTails(bird)
+        # heading = bird.velocity
+        # birdData = self.world.flock.birdData[bird.index]
+        # heading.scale_to_length(BIRD_LENGTH)
+        # if(self.world.drawDiagnostics):
+        #     self.drawDiagnosticOverlay(bird)
+        # pygame.draw.line(self.birdSurface,(255,0,0),(birdData[0],birdData[1]),(birdData[0] + heading.x,birdData[1]+heading.x),2)
+        # if(self.world.drawTails):
+        #     self.drawTails(bird)
+
     def drawRepulsor(self,rep:Repulsor):
         pygame.draw.circle(self.repulsorSurface,Color(0,0,0,3),center=rep.pos,radius=rep.radius)
         pygame.draw.circle(self.repulsorSurface,Color(0,0,0,150),center=rep.pos,radius=REPULSOR_DRAW_RADIUS)
