@@ -21,9 +21,9 @@ class Graphics:
         self.world = world
         self.screen = pygame.display.set_mode((WORLD_WIDTH, WORLD_HEIGHT))
         self.birdSurface = pygame.Surface((WORLD_WIDTH, WORLD_HEIGHT),flags=SRCALPHA,depth=32)
-        self.tailSurface = self.birdSurface # pygame.Surface((WORLD_WIDTH, WORLD_HEIGHT),flags=SRCALPHA,depth=32)
-        self.debugSurface = self.birdSurface #pygame.Surface((WORLD_WIDTH, WORLD_HEIGHT),flags=SRCALPHA,depth=32)
-        self.repulsorSurface = self.birdSurface # pygame.Surface((WORLD_WIDTH, WORLD_HEIGHT),flags=SRCALPHA,depth=32)
+        self.tailSurface = pygame.Surface((WORLD_WIDTH, WORLD_HEIGHT),flags=SRCALPHA,depth=32)
+        self.debugSurface = pygame.Surface((WORLD_WIDTH, WORLD_HEIGHT),flags=SRCALPHA,depth=32)
+        self.repulsorSurface = pygame.Surface((WORLD_WIDTH, WORLD_HEIGHT),flags=SRCALPHA,depth=32)
         self.font = pygame.font.SysFont(None, 24)
 
     def draw(self):
