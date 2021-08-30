@@ -49,6 +49,7 @@ class CLFlock:
 
     def initCL(self):
         os.environ["PYOPENCL_CTX"]=":1"
+        #os.environ["PYOPENCL_COMPILER_OUTPUT"]="1"
         self.initilized = True
         self.ctx = cl.create_some_context()
         self.queue = cl.CommandQueue(self.ctx)

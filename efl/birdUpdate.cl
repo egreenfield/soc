@@ -13,6 +13,8 @@ float2 limitSpeed(const float2 v);
 float2 stayInBox(float2 pos,
                     const int worldWidth,const int worldHeight,
                     const float boxMagnetism);
+float2 stayAwayFromRepulsors(float8 bird,__global ObjectType *objectData,const int objectCount,const float repulsionStrength);
+
 
 
 float2 limitSpeed(const float2 v) {
@@ -37,7 +39,7 @@ float2 limitSpeed(const float2 v) {
 float2 stayInBox(float2 pos,
                     const int worldWidth,const int worldHeight,
                     const float b) {
-    float2 delta = (0,0);
+    float2 delta = 0;
     const float margin = 200;        
     if(pos.x < margin)
         delta.x  += (margin - pos.x)*b;
@@ -65,7 +67,7 @@ float2 stayInBox(float2 pos,
     //     return delta
 
 float2 stayAwayFromRepulsors(float8 bird,__global ObjectType *objectData,const int objectCount,const float repulsionStrength) {
-    float2 totalForce = (0,0);
+    float2 totalForce = 0;
     for(int i=0;i<objectCount;i++) {
         ObjectType o = objectData[i];
         float2 dv = bird.xy - o.xy;
@@ -118,10 +120,10 @@ __kernel void updateBirds(
     const BirdType bird = birds[birdIndex];
 
 
-    float2 gravity = (0,0);
-    float2 forces = (0,0);
-    float2 headingChange = (0,0);
-    float2 socialDistance = (0,0);
+    float2 gravity = 0;
+    float2 forces = 0;
+    float2 headingChange = 0;
+    float2 socialDistance = 0;
     int didWrap = 0;
 
     float max2 = visibility*visibility;
